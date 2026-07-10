@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سامانه پیگیری پسماند مراکز درمانی</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EDF1EF;
+    --surface:#FFFFFF;
+    --ink:#152628;
+    --ink-soft:#4C6165;
+    --line:#D7DFDC;
+    --teal:#0E7C66;
+    --teal-dark:#0A5A4B;
+    --hazard:#F2B705;
+    --hazard-ink:#8A6400;
+    --danger:#C0392B;
+    --panel:#12201E;
+    --led:#FFD84D;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Vazirmatn',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    line-height:1.8;
+  }
+  .hazard-stripe{
+    height:10px;
+    background:repeating-linear-gradient(-45deg,var(--hazard) 0 14px,var(--ink) 14px 28px);
+  }
+  header{
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+    padding:14px 20px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  header h1{font-size:1.05rem;font-weight:800;letter-spacing:-.2px}
+  header .sub{font-size:.78rem;color:var(--ink-soft)}
+  .hbtns{display:flex;gap:8px}
+  main{max-width:860px;margin:0 auto;padding:28px 18px 60px}
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:26px;
+    margin-bottom:18px;
+  }
+  .btn{
+    font-family:inherit;font-size:.9rem;font-weight:600;
+    border:none;border-radius:10px;cursor:pointer;
+    padding:11px 22px;transition:background .15s, transform .05s;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--teal);color:#fff}
+  .btn-primary:hover{background:var(--teal-dark)}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);padding:8px 14px;font-size:.8rem}
+  .btn-ghost:hover{background:var(--bg)}
+  .btn-hazard{background:var(--hazard);color:var(--ink)}
+  .btn-hazard:hover{filter:brightness(.95)}
+  input[type=text],input[type=password]{
+    font-family:inherit;font-size:1.05rem;
+    width:100%;padding:13px 16px;
+    border:1.5px solid var(--line);border-radius:10px;
+    background:var(--bg);color:var(--ink);
+    letter-spacing:1px;
+  }
+  input:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+  .center-box{max-width:430px;margin:6vh auto 0}
+  .login-icon{
+    width:64px;height:64px;border-radius:50%;
+    background:var(--hazard);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 16px;font-size:1.8rem;
+  }
+  .center-box h2{text-align:center;font-size:1.25rem;font-weight:800;margin-bottom:4px}
+  .center-box p.lead{text-align:center;color:var(--ink-soft);font-size:.85rem;margin-bottom:22px}
+  label{display:block;font-size:.82rem;font-weight:600;color:var(--ink-soft);margin-bottom:7px}
+  .form-row{margin-bottom:16px}
+  .err{
+    background:#FDECEA;color:var(--danger);
+    border:1px solid #F4C7C3;border-radius:10px;
+    padding:10px 14px;font-size:.84rem;margin-bottom:14px;display:none;
+  }
+  .notice{
+    background:#FFF8E1;color:var(--hazard-ink);
+    border:1px solid #F2E0A0;border-radius:10px;
+    padding:10px 14px;font-size:.8rem;margin-top:16px;
+  }
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .chip{
+    font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;
+    padding:7px 18px;border-radius:999px;
+    border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);
+    transition:all .15s;
+  }
+  .chip:hover{border-color:var(--teal)}
+  .chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+  .scale-panel{
+    background:var(--panel);
+    border-radius:14px;
+    padding:0 0 26px;
+    overflow:hidden;
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .scale-panel .hazard-stripe{margin-bottom:24px}
+  .scale-panel .who{color:#B9C9C4;font-size:.85rem;letter-spacing:.5px}
+  .scale-panel .name{color:#fff;font-size:1.3rem;font-weight:800;margin-bottom:14px}
+  .scale-panel .weight{
+    font-size:clamp(3.2rem,12vw,5.2rem);
+    font-weight:800;color:var(--led);
+    line-height:1.15;
+    text-shadow:0 0 22px rgba(255,216,77,.45);
+    font-variant-numeric:tabular-nums;
+  }
+  .scale-panel .unit{color:#B9C9C4;font-size:.9rem;margin-top:2px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+  .stat{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;
+  }
+  .stat .k{font-size:.75rem;color:var(--ink-soft);margin-bottom:2px}
+  .stat .v{font-size:1.35rem;font-weight:800;font-variant-numeric:tabular-nums}
+  .compare-bar{margin-top:8px}
+  .compare-bar .row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.82rem}
+  .compare-bar .row .lbl{width:120px;color:var(--ink-soft);flex-shrink:0}
+  .compare-bar .track{flex:1;height:14px;background:var(--bg);border-radius:7px;overflow:hidden}
+  .compare-bar .fill{height:100%;border-radius:7px}
+  .fill-me{background:var(--hazard)}
+  .fill-avg{background:var(--teal)}
+  .compare-bar .num{width:70px;font-weight:600;font-variant-numeric:tabular-nums;font-size:.8rem}
+  h3.sec{font-size:.95rem;font-weight:800;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:.86rem}
+  th{
+    text-align:right;font-size:.72rem;color:var(--ink-soft);font-weight:600;
+    border-bottom:2px solid var(--line);padding:8px 10px;
+  }
+  td{border-bottom:1px solid var(--line);padding:9px 10px;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:none}
+  tr.total-row td{font-weight:800;background:var(--bg)}
+  .rank-chip{
+    display:inline-block;background:var(--bg);border-radius:6px;
+    padding:1px 9px;font-size:.75rem;font-weight:600;color:var(--ink-soft);
+  }
+  .search-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .search-row input{flex:1;min-width:200px;font-size:.9rem;padding:10px 14px}
+  .muted{color:var(--ink-soft);font-size:.8rem}
+  .spin{
+    width:38px;height:38px;border:4px solid var(--line);
+    border-top-color:var(--teal);border-radius:50%;
+    animation:sp 1s linear infinite;margin:60px auto 14px;
+  }
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation-duration:2.5s}}
+  .loading-txt{text-align:center;color:var(--ink-soft);font-size:.85rem}
+  code.k{background:var(--bg);border-radius:5px;padding:1px 7px;font-size:.82em;direction:ltr;display:inline-block}
+  .codebox{
+    background:var(--bg);border:1px dashed var(--line);border-radius:10px;
+    padding:14px;font-size:.8rem;max-height:260px;overflow:auto;
+    white-space:pre;direction:rtl;font-variant-numeric:tabular-nums;margin-top:12px;
+  }
+  ol.steps{padding-right:20px;font-size:.82rem;color:var(--ink-soft)}
+  ol.steps li{margin-bottom:6px}
+  footer{text-align:center;font-size:.72rem;color:var(--ink-soft);padding:20px}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="hazard-stripe"></div>
+<header>
+  <div>
+    <h1>سامانه پیگیری پسماند مراکز درمانی</h1>
+    <div class="sub" id="periodLabel"></div>
+  </div>
+  <div class="hbtns">
+    <button class="btn btn-ghost hidden" id="refreshBtn" onclick="loadData(true)">به‌روزرسانی داده‌ها</button>
+    <button class="btn btn-ghost hidden" id="logoutBtn" onclick="logout()">خروج</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ═══ صفحه بارگذاری ═══ -->
+  <div id="viewLoading">
+    <div class="spin"></div>
+    <p class="loading-txt">در حال دریافت اطلاعات از گوگل‌شیت…</p>
+  </div>
+
+  <!-- ═══ خطای اتصال ═══ -->
+  <div id="viewError" class="hidden">
+    <div class="card center-box">
+      <h2 style="color:var(--danger)">اتصال به گوگل‌شیت برقرار نشد</h2>
+      <p class="muted" style="margin-top:10px">
+        ۱) شیت باید روی حالت «هر کسی با لینک → مشاهده» باشد
+        (Share → Anyone with the link → Viewer).<br>
+        ۲) اینترنت و دسترسی به docs.google.com را بررسی کنید.<br>
+        ۳) نام تب‌های ماه در شیت باید با فهرست تب «ماهها» یکی باشد.
+      </p>
+      <p class="muted" id="errDetail" style="margin-top:8px;font-size:.72rem"></p>
+      <div style="text-align:center;margin-top:18px">
+        <button class="btn btn-primary" onclick="loadData()">تلاش دوباره</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ صفحه ورود ═══ -->
+  <div id="viewLogin" class="hidden">
+    <div class="card center-box">
+      <div class="login-icon">⚕</div>
+      <h2>ورود به حساب مرکز</h2>
+      <p class="lead">کد ورود اختصاصی مرکز خود را وارد کنید</p>
+      <div class="err" id="loginErr"></div>
+      <form onsubmit="return doLogin(event)">
+        <div class="form-row">
+          <label for="codeInput">کد ورود</label>
+          <input type="password" id="codeInput" autocomplete="off" placeholder="مثال: ALVAND">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">ورود</button>
+      </form>
+      <div class="notice hidden" id="noCodesNotice">
+        هنوز هیچ کد ورودی در شیت تعریف نشده است. مدیر سامانه با کد مدیریت وارد شود
+        و از بخش «تولید کد ورود» برای مراکز کد بسازد.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ داشبورد مرکز ═══ -->
+  <div id="viewCenter" class="hidden">
+    <div class="chips" id="cChips"></div>
+
+    <div class="scale-panel">
+      <div class="hazard-stripe"></div>
+      <div class="who" id="cScopeLbl">جمع پسماند تحویلی</div>
+      <div class="name" id="cName"></div>
+      <div class="weight" id="cWeight"></div>
+      <div class="unit">کیلوگرم</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">شهرستان</div><div class="v" id="cCity" style="font-size:1.05rem"></div></div>
+      <div class="stat"><div class="k">رتبه در شهرستان (بیشترین وزن)</div><div class="v" id="cRank"></div></div>
+      <div class="stat"><div class="k">سهم از کل شهرستان</div><div class="v" id="cShare"></div></div>
+    </div>
+
+    <div class="card">
+      <h3 class="sec">وزن پسماند به تفکیک ماه</h3>
+      <table>
+        <thead><tr><th>ماه</th><th>وزن (کیلوگرم)</th></tr></thead>
+        <tbody id="cMonthTbody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3 class="sec">مقایسه با میانگین شهرستان</h3>
+      <div class="compare-bar" id="cCompare"></div>
+      <p class="muted" id="cCompareTxt" style="margin-top:6px"></p>
+    </div>
+  </div>
+
+  <!-- ═══ داشبورد مدیر ═══ -->
+  <div id="viewAdmin" class="hidden">
+    <div class="chips" id="aChips"></div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">جمع کل پسماند</div><div class="v" id="aTotal"></div></div>
+      <div class="stat"><div class="k">تعداد مراکز</div><div class="v" id="aCount"></div></div>
+      <div class="stat"><div class="k">مراکز دارای کد ورود</div><div class="v" id="aWithCode"></div></div>
+    </div>
+
+    <div class="card">
+      <h3 class="sec">فهرست مراکز</h3>
+      <div class="search-row">
+        <input type="text" id="adminSearch" placeholder="جست‌وجوی نام مرکز یا شهرستان…" oninput="renderAdminTable()">
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>رتبه</th><th>نام مرکز</th><th>شهرستان</th><th>وزن (kg)</th><th>کد ورود</th></tr></thead>
+          <tbody id="adminTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="sec">افزودن ماه جدید</h3>
+      <ol class="steps">
+        <li>در گوگل‌شیت، تبِ ماه جدید را بسازید (مثلاً «مهر») با همان ستون‌ها: نام مرکز، وزن کل، شهرستان.</li>
+        <li>در تبِ <b>«ماهها»</b>، نام همان تب را در یک ردیف جدید ستون A بنویسید (املای نام تب و ردیفِ «ماهها» باید مو‌به‌مو یکی باشد).</li>
+        <li>اینجا دکمه «به‌روزرسانی داده‌ها» را بزنید — ماه جدید برای همه ظاهر می‌شود.</li>
+      </ol>
+      <p class="muted">ماه‌های فعال فعلی: <span id="aMonthList"></span></p>
+    </div>
+
+    <div class="card">
+      <h3 class="sec">تولید کد ورود برای مراکز</h3>
+      <p class="muted">
+        برای مراکزی که کد ندارند، کد بسازید و در ستون
+        <code class="k">D</code> تبِ ماه اول (روبه‌روی هر مرکز) وارد کنید. کد هر مرکز برای
+        همه ماه‌ها یکی است. پس از ذخیره، «به‌روزرسانی داده‌ها» را بزنید.
+      </p>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-hazard" onclick="generateCodes()">تولید کد برای مراکز بدون کد</button>
+        <button class="btn btn-ghost hidden" id="copyCodesBtn" onclick="copyCodes()">کپی فهرست</button>
+      </div>
+      <div class="codebox hidden" id="codeOut"></div>
+    </div>
+  </div>
+
+</main>
+<footer>داده‌ها به‌صورت زنده از گوگل‌شیت خوانده می‌شوند</footer>
+
+<script>
+/* ═══════════════════════ تنظیمات ═══════════════════════
+   ۱) SHEET_ID: شناسه فایل گوگل‌شیت DataBase (از آدرس شیت).
+   ۲) ADMIN_CODE: کد ورود مدیر — حتماً آن را عوض کنید!
+   ۳) MONTHS_TAB_NAMES: نام‌های ممکن برای تبِ فهرست ماه‌ها.
+      در شیت یک تب به نام «ماهها» بسازید و در ستون A آن، نام
+      تب‌های ماه فعال را بنویسید (هر ماه یک ردیف): خرداد، تیر، …
+      برنامه فهرست ماه‌ها را از همان تب می‌خواند؛ افزودن ماه جدید
+      دیگر نیازی به تغییر این فایل ندارد.
+   ۴) DEFAULT_MONTHS: اگر تب «ماهها» پیدا نشود، این فهرست
+      استفاده می‌شود.
+   ساختار ستون‌های هر تبِ ماه:
+      A=نام مرکز   B=وزن کل   C=شهرستان   D=کد ورود
+   کد ورود فقط لازم است در تبِ ماه اول باشد — به شرطی که «نام مرکز»
+   و «شهرستان» در همه تب‌ها یکسان نوشته شود.
+   ═══════════════════════════════════════════════════════ */
+const SHEET_ID   = "1MwBhb4uZRfXqrEnXVSk1DfbW-c6PWn78gMqWkjDX_5o";
+const ADMIN_CODE = "MODIR-1405";
+const MONTHS_TAB_NAMES = ["ماهها","ماه‌ها","months","Months"];
+const DEFAULT_MONTHS   = ["خرداد","تیر","مرداد","شهریور"];
+
+/* ═══════════════════════ حالت برنامه ═══════════════════ */
+let MONTHS  = [];        // [{label, loaded}]
+let centers = [];        // {key, name, city, code, w:[...], total}
+let session = null;      // {type:'admin'} یا {type:'center', key}
+let scope   = 'all';
+let generated = [];
+
+const fa  = n => Number(n).toLocaleString('fa-IR');
+const fa1 = n => Number(n).toLocaleString('fa-IR',{maximumFractionDigits:1});
+const $   = id => document.getElementById(id);
+
+/* ═══════════════════ دریافت داده‌ها ═══════════════════ */
+function parseCSV(text){
+  const rows=[]; let row=[], cell='', inQ=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else inQ=false; }
+      else cell+=ch;
+    }else{
+      if(ch==='"') inQ=true;
+      else if(ch===','){ row.push(cell); cell=''; }
+      else if(ch==='\n'){ row.push(cell); rows.push(row); row=[]; cell=''; }
+      else if(ch!=='\r') cell+=ch;
+    }
+  }
+  if(cell!=='' || row.length){ row.push(cell); rows.push(row); }
+  return rows;
+}
+
+async function fetchCSVBySheet(sheetName){
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&t=${Date.now()}`;
+  const res = await fetch(url, {redirect:'follow'});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const text = await res.text();
+  if(text.trim().startsWith('<')) throw new Error('دسترسی به شیت آزاد نیست یا تب «'+sheetName+'» وجود ندارد');
+  return text;
+}
+
+/* مسیر جایگزین: بارگذاری با تگ اسکریپت (JSONP) — محدودیت CORS ندارد */
+let jsonpCounter = 0;
+function fetchViaScript(sheetName){
+  return new Promise((resolve, reject)=>{
+    const cb = '__gvizCb'+(++jsonpCounter)+'_'+Date.now();
+    const timer = setTimeout(()=>{ cleanup(); reject(new Error('پاسخی برای تب «'+sheetName+'» دریافت نشد')); }, 15000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; s.remove(); }
+    window[cb] = data=>{
+      cleanup();
+      try{
+        if(data.status==='error') throw new Error('تب «'+sheetName+'» پیدا نشد');
+        const rows = (data.table.rows||[]).map(r=>(r.c||[]).map(c=>c&&c.v!=null?String(c.v):''));
+        if(data.table.cols && data.table.cols.some(c=>c.label)){
+          rows.unshift(data.table.cols.map(c=>c.label||''));
+        }
+        resolve(rows);
+      }catch(e){ reject(e); }
+    };
+    const s = document.createElement('script');
+    s.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json;responseHandler:${cb}&t=${Date.now()}`;
+    s.onerror = ()=>{ cleanup(); reject(new Error('بارگذاری از docs.google.com ناموفق بود — دسترسی شبکه یا اشتراک‌گذاری شیت را بررسی کنید')); };
+    document.head.appendChild(s);
+  });
+}
+
+async function getRows(sheetName){
+  try{ return parseCSV(await fetchCSVBySheet(sheetName)); }
+  catch(e){ return await fetchViaScript(sheetName); }
+}
+
+/* فهرست ماه‌ها را از تب «ماهها» می‌خوانیم؛ اگر نبود از پیش‌فرض */
+async function loadMonthList(){
+  for(const tab of MONTHS_TAB_NAMES){
+    try{
+      const rows = await getRows(tab);
+      const names = rows.map(r=>(r[0]||'').trim())
+        .filter(x=>x && x!=='ماه' && x!=='نام ماه' && x!=='month');
+      if(names.length) return names;
+    }catch(e){ /* تب بعدی را امتحان کن */ }
+  }
+  return DEFAULT_MONTHS;
+}
+
+async function loadData(silent){
+  if(!silent){ show('viewLoading'); }
+  try{
+    const monthNames = await loadMonthList();
+    // هر ماه جداگانه خوانده می‌شود؛ ماهی که خطا بدهد حذف نمی‌کند، فقط علامت می‌خورد
+    const results = await Promise.all(monthNames.map(async name=>{
+      try{ return {name, rows: await getRows(name)}; }
+      catch(e){ return {name, rows:null, err:e}; }
+    }));
+    const okMonths = results.filter(r=>r.rows);
+    if(!okMonths.length){
+      throw new Error('هیچ‌کدام از تب‌های ماه خوانده نشد ('+monthNames.join('، ')+') — نام تب‌ها و اشتراک‌گذاری شیت را بررسی کنید');
+    }
+    MONTHS = okMonths.map(r=>({label:r.name}));
+
+    const map = new Map();
+    okMonths.forEach((res, mi)=>{
+      res.rows.forEach(r=>{
+        const name = (r[0]||'').trim();
+        const w    = parseFloat(String(r[1]||'').replace(/[^\d.\-]/g,''));
+        const city = (r[2]||'').trim();
+        const code = (r[3]||'').trim();
+        if(!name || name==='نام مرکز' || isNaN(w)) return;
+        const key = name+'|'+city;   // تفکیک مراکز هم‌نام در شهرستان‌های مختلف
+        let c = map.get(key);
+        if(!c){ c={key, name, city, code:'', w:Array(okMonths.length).fill(null)}; map.set(key,c); }
+        c.w[mi] = (c.w[mi]||0) + w;
+        if(code && !c.code) c.code = code;
+      });
+    });
+    centers = [...map.values()];
+    centers.forEach(c=> c.total = c.w.reduce((s,x)=>s+(x||0),0));
+    if(!centers.length) throw new Error('در تب‌های ماه هیچ ردیف معتبری پیدا نشد');
+
+    $('periodLabel').textContent = MONTHS.length===1
+      ? 'دوره: '+MONTHS[0].label
+      : 'دوره: '+MONTHS[0].label+' تا '+MONTHS[MONTHS.length-1].label;
+
+    if(scope!=='all' && scope>=MONTHS.length) scope='all';
+    afterLoad();
+  }catch(e){
+    console.error(e);
+    $('errDetail').textContent = 'جزئیات فنی: ' + (e && e.message ? e.message : e);
+    show('viewError');
+  }
+}
+
+function afterLoad(){
+  if(session){
+    if(session.type==='admin'){ renderAdmin(); show('viewAdmin'); }
+    else{
+      const c = centers.find(x=>x.key===session.key);
+      if(c){ renderCenter(c); show('viewCenter'); }
+      else logout();
+    }
+  }else{
+    const anyCode = centers.some(c=>c.code);
+    $('noCodesNotice').classList.toggle('hidden', anyCode);
+    show('viewLogin');
+    $('codeInput').focus();
+  }
+}
+
+function valOf(c){ return scope==='all' ? c.total : c.w[scope]; }
+function scopeLabel(){ return scope==='all' ? (MONTHS.length>1?'جمع همه ماه‌ها':MONTHS[0].label) : MONTHS[scope].label; }
+
+/* ═══════════════════════ ورود / خروج ═══════════════════ */
+function doLogin(ev){
+  ev.preventDefault();
+  const code = $('codeInput').value.trim();
+  const errEl = $('loginErr');
+  errEl.style.display='none';
+  if(!code) return false;
+
+  if(code===ADMIN_CODE){
+    session={type:'admin'};
+    scope = MONTHS.length>1 ? 'all' : 0;
+    renderAdmin(); show('viewAdmin');
+  }else{
+    const c = centers.find(x=>x.code && x.code.toLowerCase()===code.toLowerCase());
+    if(c){
+      session={type:'center', key:c.key};
+      scope = MONTHS.length>1 ? 'all' : 0;
+      renderCenter(c); show('viewCenter');
+    }else{
+      errEl.textContent='کد ورود نامعتبر است. کد را بررسی کنید یا با مدیر سامانه تماس بگیرید.';
+      errEl.style.display='block';
+      return false;
+    }
+  }
+  $('codeInput').value='';
+  return false;
+}
+
+function logout(){
+  session=null; generated=[]; scope='all';
+  $('codeOut').classList.add('hidden');
+  $('copyCodesBtn').classList.add('hidden');
+  afterLoad();
+}
+
+/* ═══════════════════ انتخاب ماه (چیپ‌ها) ═══════════════ */
+function renderChips(elId, onPick){
+  const el = $(elId);
+  let html='';
+  if(MONTHS.length>1) html += chipBtn('all', 'جمع همه ماه‌ها', onPick);
+  MONTHS.forEach((m,i)=> html += chipBtn(i, m.label, onPick));
+  el.innerHTML = html;
+}
+function chipBtn(val, lbl, onPick){
+  const on = String(scope)===String(val) ? ' on':'';
+  return `<button class="chip${on}" onclick="setScope('${val}','${onPick}')">${lbl}</button>`;
+}
+function setScope(val, who){
+  scope = val==='all' ? 'all' : parseInt(val);
+  if(who==='center'){
+    const c = centers.find(x=>x.key===session.key);
+    if(c) renderCenter(c);
+  }else renderAdmin();
+}
+
+/* ═══════════════════ داشبورد مرکز ═══════════════════ */
+function renderCenter(c){
+  renderChips('cChips','center');
+  const v = valOf(c);
+  $('cScopeLbl').textContent = 'پسماند تحویلی — '+scopeLabel();
+  $('cName').textContent = c.name;
+  $('cWeight').textContent = v==null ? '—' : fa(v);
+  $('cCity').textContent = c.city || '—';
+
+  const inCity = centers.filter(x=>x.city===c.city && valOf(x)!=null);
+  if(v==null || !inCity.length){
+    $('cRank').textContent='—';
+    $('cShare').textContent='—';
+    $('cCompare').innerHTML='';
+    $('cCompareTxt').textContent = v==null?'برای این ماه داده‌ای برای مرکز شما ثبت نشده است.':'';
+  }else{
+    const sorted = [...inCity].sort((a,b)=>valOf(b)-valOf(a));
+    const rank   = sorted.findIndex(x=>x.key===c.key)+1;
+    const citySum= inCity.reduce((s,x)=>s+valOf(x),0);
+    const avg    = citySum/inCity.length;
+    const share  = citySum? (v/citySum*100):0;
+    $('cRank').innerHTML  = fa(rank)+' <span class="rank-chip">از '+fa(inCity.length)+' مرکز</span>';
+    $('cShare').textContent = fa1(share)+'٪';
+    const maxV = Math.max(v, avg, 1);
+    $('cCompare').innerHTML =
+      barRow('مرکز شما', v, maxV, 'fill-me') +
+      barRow('میانگین شهرستان', avg, maxV, 'fill-avg');
+    const diff = v-avg;
+    $('cCompareTxt').textContent = (diff>=0
+      ? 'وزن پسماند مرکز شما '+fa(Math.round(Math.abs(diff)))+' کیلوگرم بیشتر از میانگین مراکز '+c.city
+      : 'وزن پسماند مرکز شما '+fa(Math.round(Math.abs(diff)))+' کیلوگرم کمتر از میانگین مراکز '+c.city)
+      +' در بازه «'+scopeLabel()+'» است.';
+  }
+
+  let rows='';
+  MONTHS.forEach((m,i)=>{
+    rows += '<tr><td>'+m.label+'</td><td>'+(c.w[i]==null?'<span class="muted">ثبت نشده</span>':fa(c.w[i]))+'</td></tr>';
+  });
+  if(MONTHS.length>1)
+    rows += '<tr class="total-row"><td>جمع کل</td><td>'+fa(c.total)+'</td></tr>';
+  $('cMonthTbody').innerHTML = rows;
+}
+
+function barRow(lbl,val,max,cls){
+  const w=Math.max(2, val/max*100);
+  return '<div class="row"><span class="lbl">'+lbl+'</span>'+
+         '<div class="track"><div class="fill '+cls+'" style="width:'+w+'%"></div></div>'+
+         '<span class="num">'+fa(Math.round(val))+'</span></div>';
+}
+
+/* ═══════════════════ داشبورد مدیر ═══════════════════ */
+function renderAdmin(){
+  renderChips('aChips','admin');
+  const inScope = centers.filter(c=>valOf(c)!=null);
+  const total = inScope.reduce((s,c)=>s+valOf(c),0);
+  $('aTotal').textContent    = fa(Math.round(total))+' kg';
+  $('aCount').textContent    = fa(inScope.length);
+  $('aWithCode').textContent = fa(centers.filter(c=>c.code).length)+' از '+fa(centers.length);
+  $('aMonthList').textContent = MONTHS.map(m=>m.label).join('، ');
+  renderAdminTable();
+}
+
+function renderAdminTable(){
+  const q = ($('adminSearch').value||'').trim();
+  const sorted = centers.filter(c=>valOf(c)!=null).sort((a,b)=>valOf(b)-valOf(a));
+  let html='';
+  sorted.forEach((c,i)=>{
+    if(q && !c.name.includes(q) && !c.city.includes(q)) return;
+    html+='<tr><td>'+fa(i+1)+'</td><td>'+c.name+'</td><td>'+c.city+'</td>'+
+          '<td>'+fa(valOf(c))+'</td>'+
+          '<td>'+(c.code?'<code class="k">'+c.code+'</code>':'<span class="muted">ندارد</span>')+'</td></tr>';
+  });
+  $('adminTbody').innerHTML = html || '<tr><td colspan="5" class="muted">موردی یافت نشد</td></tr>';
+}
+
+function generateCodes(){
+  const chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // بدون حروف مبهم
+  const used = new Set(centers.filter(c=>c.code).map(c=>c.code.toLowerCase()));
+  generated=[];
+  centers.forEach(c=>{
+    if(c.code) return;
+    let code;
+    do{
+      code='';
+      for(let i=0;i<6;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+    }while(used.has(code.toLowerCase()));
+    used.add(code.toLowerCase());
+    generated.push({name:c.name, city:c.city, code});
+  });
+  if(!generated.length){
+    $('codeOut').textContent='همه مراکز کد ورود دارند.';
+    $('codeOut').classList.remove('hidden');
+    $('copyCodesBtn').classList.add('hidden');
+    return;
+  }
+  $('codeOut').textContent = generated.map(g=>g.name+' ('+g.city+')  ←  '+g.code).join('\n');
+  $('codeOut').classList.remove('hidden');
+  $('copyCodesBtn').classList.remove('hidden');
+}
+
+function copyCodes(){
+  const txt = generated.map(g=>g.name+'\t'+g.code).join('\n');
+  navigator.clipboard.writeText(txt).then(()=>{
+    $('copyCodesBtn').textContent='کپی شد ✓';
+    setTimeout(()=>$('copyCodesBtn').textContent='کپی فهرست',2000);
+  });
+}
+
+/* ═══════════════════════ نمایش صفحات ═══════════════════ */
+function show(id){
+  ['viewLoading','viewError','viewLogin','viewCenter','viewAdmin'].forEach(v=>
+    $(v).classList.toggle('hidden', v!==id));
+  const inApp = (id==='viewCenter'||id==='viewAdmin');
+  $('logoutBtn').classList.toggle('hidden', !inApp);
+  $('refreshBtn').classList.toggle('hidden', !inApp);
+}
+
+loadData();
+</script>
+</body>
+</html>
