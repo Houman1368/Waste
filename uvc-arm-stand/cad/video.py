@@ -10,11 +10,11 @@ from export import _polydata, color_of, COL
 
 c = V2
 FPS = 24
-W, H = 1280, 720
+W, H = 1080, 1920  # vertical (portrait) clip
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "video")
 FRAMES = os.path.join("/tmp", "uvc_frames")
 os.makedirs(OUT_DIR, exist_ok=True)
-os.makedirs(FRAMES, exist_ok=True)
+os.makedirs(FRAMES, exist_ok=True)  # render with: python video.py  [--compose-only]
 
 ren = vtk.vtkRenderer()
 ren.SetBackground(0.97, 0.97, 0.98)
@@ -26,17 +26,12 @@ win.AddRenderer(ren)
 win.SetSize(W, H)
 win.SetMultiSamples(8)
 
-label = vtk.vtkTextActor()
-label.GetTextProperty().SetFontSize(30)
-label.GetTextProperty().SetColor(0.12, 0.12, 0.15)
-label.GetTextProperty().BoldOn()
-label.SetPosition(30, H - 60)
-ren.AddActor2D(label)
-sub = vtk.vtkTextActor()
-sub.GetTextProperty().SetFontSize(20)
-sub.GetTextProperty().SetColor(0.3, 0.3, 0.35)
-sub.SetPosition(30, H - 95)
-ren.AddActor2D(sub)
+CAPTIONS = []  # per frame: (step_no, title_fa, sub_fa)
+CUR = {"step": 0, "title": "", "sub": ""}
+
+
+def caption(step, title, sub=""):
+    CUR.update(step=step, title=title, sub=sub)
 
 
 def make_actor(shape, name):
@@ -62,13 +57,13 @@ def static_group(title, subtitle, keys, offset):
     groups.append((title, subtitle, [(make_actor(S[k], k), None, offset) for k in keys]))
 
 
-static_group("1. Casters", "4 x swivel casters D75 (2 with brake)", [k for k in S if k.startswith("B3")], (0, 0, -400))
-static_group("2. Base plate B1", "steel 6 mm, 500 x 400", ["B1_base_plate"], (0, 0, 600))
-static_group("3. Column flange + gussets", "flange 260 x 220 x 6, 4 x M10 to base", ["C1_flange"] + [k for k in S if "gusset" in k], (0, 0, 600))
-static_group("4. Column C1", "1.5 mm box 160 x 120 x 1050 + top cap", ["C1_column", "C1_top_cap"], (0, 0, 1400))
-static_group("5. Ballast box B2", "covers ballasts, fuse, terminals", ["B2_ballast_box"], (0, 0, 1500))
-static_group("6. Panel C3, handle, service door", "panel + handle on right side, door on back", ["C3_panel_box", "handle", "C2_service_door"], (500, 0, 0))
-static_group("7. Head plates T1 (front + back)", "4 mm, 240 x 160, axis at 1150 mm", ["T1_head_plate_front", "T1_head_plate_back"], (0, 0, 700))
+static_group("چرخ‌ها (B3)", "۴ چرخ گردان Ø۷۵ با روکش PU — دو چرخ ترمزدار در یک قطر", [k for k in S if k.startswith("B3")], (0, 0, -400))
+static_group("صفحهٔ پایه (B1)", "ورق فولادی ۶ میلی‌متر، ۵۰۰ × ۴۰۰", ["B1_base_plate"], (0, 0, 600))
+static_group("فلنج و لچکی‌های ستون", "فلنج ۲۶۰ × ۲۲۰ × ۶ با ۴ پیچ M10 به صفحهٔ پایه", ["C1_flange"] + [k for k in S if "gusset" in k], (0, 0, 600))
+static_group("ستون (C1)", "باکس ورق ۱٫۵ میلی‌متر، ۱۶۰ × ۱۲۰ × ۱۰۵۰ با درپوش بالا", ["C1_column", "C1_top_cap"], (0, 0, 1400))
+static_group("جعبهٔ باالست (B2)", "باالست‌ها، فیوز و ترمینال — وزن پایین، پایداری بیشتر", ["B2_ballast_box"], (0, 0, 1500))
+static_group("پنل کنترل، دستهٔ هل‌دادن و درب سرویس", "پنل و دسته روی وجه کناری، درب سرویس پشت ستون", ["C3_panel_box", "handle", "C2_service_door"], (500, 0, 0))
+static_group("صفحه‌های سر (T1) جلو و پشت", "ورق ۴ میلی‌متر، ۲۴۰ × ۱۶۰ — محور لولا در ارتفاع ۱۱۵۰", ["T1_head_plate_front", "T1_head_plate_back"], (0, 0, 700))
 
 canon = arm_canonical(c)
 hinge_items, arm_items = [], []
@@ -87,8 +82,8 @@ for face in ("F", "B"):
             acts.append(a)
             arm_items.append((a, (face, side), (0, (-700 if face == "F" else 700), 0)))
         ARM_ACTORS[(face, side)] = acts
-groups.append(("8. Index plungers + hinge bolts", "M8 index plunger, teflon washer, M10 bolt + bronze bush", hinge_items))
-groups.append(("9. Four arms A1 (with H1 bracket + H2 disc)", "aluminium reflector channel, UV-C T8 30 W lamp", arm_items))
+groups.append(("پین‌های قفل و محور لولا", "پین فنری M8، واشر تفلونی، پیچ M10 با بوش برنجی", hinge_items))
+groups.append(("چهار بازوی لامپ (A1)", "ناودانی رفلکتور آلومینیومی، لامپ UV-C T8 سی‌وات، دیسک تقسیم H2", arm_items))
 
 
 def arm_transform(face, side, alpha, offset=(0, 0, 0)):
@@ -110,11 +105,14 @@ def set_pose(pose, offsets=None):
 
 
 cam = ren.GetActiveCamera()
-FOCAL = np.array([0, 0, 1050.0])
+FOCAL = np.array([0, 0, 980.0])
 
 
-def set_camera(azim_deg, elev_deg=18, scale=1250):
+def set_camera(azim_deg, elev_deg=18, scale=1250, zc=None):
+    """zc = height (mm) shown at the centre of the free band between header and footer overlays."""
     a, e = math.radians(azim_deg), math.radians(elev_deg)
+    if zc is not None:
+        FOCAL[2] = zc - 94 * (2 * scale / H)  # band centre is 94 px above the frame centre
     d = np.array([math.sin(a) * math.cos(e), -math.cos(a) * math.cos(e), math.sin(e)])
     cam.SetFocalPoint(*FOCAL)
     cam.SetPosition(*(FOCAL + 8000 * d))
@@ -132,7 +130,14 @@ def ease(x):
 frame_no = [0]
 
 
+SKIP_RENDER = "--compose-only" in sys.argv  # reuse existing f*.png frames, only redo overlays
+
+
 def snap():
+    if SKIP_RENDER:
+        CAPTIONS.append(dict(CUR))
+        frame_no[0] += 1
+        return
     win.Render()
     f = vtk.vtkWindowToImageFilter()
     f.SetInput(win)
@@ -141,6 +146,7 @@ def snap():
     w.SetFileName(os.path.join(FRAMES, f"f{frame_no[0]:05d}.png"))
     w.SetInputConnection(f.GetOutputPort())
     w.Write()
+    CAPTIONS.append(dict(CUR))
     frame_no[0] += 1
 
 
@@ -149,9 +155,8 @@ PARK = {k: 0.0 for k in ARM_ACTORS}
 set_pose(PARK)
 STEP = 22
 azim = -35.0
-for title, subtitle, items in groups:
-    label.SetInput(title)
-    sub.SetInput(subtitle)
+for gi, (title, subtitle, items) in enumerate(groups):
+    caption(gi + 1, title, subtitle)
     for a, *_ in items:
         a.VisibilityOn()
     for i in range(STEP + 6):
@@ -164,13 +169,12 @@ for title, subtitle, items in groups:
                 t = vtk.vtkTransform()
                 t.Translate(*o)
                 a.SetUserTransform(t)
-        set_camera(azim, 20, 1150)
+        set_camera(azim, 20, 1500, 600)
         azim += 0.25
         snap()
-label.SetInput("Assembled - all arms parked (0 deg)")
-sub.SetInput("move the stand only in this position")
+caption(10, "مونتاژ کامل — بازوها در حالت پارک (۰ درجه)", "جابه‌جایی دستگاه فقط در این حالت")
 for i in range(30):
-    set_camera(azim, 20, 1150)
+    set_camera(azim, 20, 1500, 600)
     azim += 0.25
     snap()
 
@@ -188,29 +192,30 @@ def stepped(a0, a1, x):
 
 
 moves = [
-    ("Front arms -> 90 deg (horizontal)", "pull plunger knob, rotate, release: locks every 15 deg",
+    ("بازوهای جلو تا ۹۰ درجه (افقی)", "دستهٔ پین را بکشید، بچرخانید، رها کنید — قفل هر ۱۵ درجه",
      {("F", 1): (0, 90), ("F", -1): (0, 90), ("B", 1): (0, 0), ("B", -1): (0, 0)}, 110),
-    ("Back arms -> 135 / 90 deg, front right -> 180", "each arm is fully independent",
+    ("تنظیم مستقل هر چهار بازو", "۰ تا ۱۸۰ درجه، ۱۳ موقعیت قفل برای هر بازو",
      {("F", 1): (90, 180), ("F", -1): (90, 45), ("B", 1): (0, 135), ("B", -1): (0, 90)}, 120),
-    ("Working position", "4 x 30 W UV-C - room must be empty (PIR + start delay)",
+    ("حالت کار", "۴ × ۳۰ وات UV-C — فقط در اتاق خالی (سنسور PIR و تأخیر شروع)",
      {k: (v, v) for k, v in {("F", 1): 180, ("F", -1): 45, ("B", 1): 135, ("B", -1): 90}.items()}, 90),
-    ("Back to park (0 deg)", "", {("F", 1): (180, 0), ("F", -1): (45, 0), ("B", 1): (135, 0), ("B", -1): (90, 0)}, 130),
+    ("بازگشت به حالت پارک", "همهٔ بازوها به ۰ درجه، آمادهٔ جابه‌جایی", {("F", 1): (180, 0), ("F", -1): (45, 0), ("B", 1): (135, 0), ("B", -1): (90, 0)}, 130),
 ]
-for title, subtitle, spec, n in moves:
-    label.SetInput(title)
-    sub.SetInput(subtitle)
+for mi, (title, subtitle, spec, n) in enumerate(moves):
+    caption(11 + mi, title, subtitle)
     for i in range(n):
         x = i / (n - 1)
         set_pose({k: stepped(a0, a1, x) for k, (a0, a1) in spec.items()})
-        set_camera(azim, 16, 1250)
+        set_camera(azim, 16, 1750, 1030)
         azim += 0.6
         snap()
 for i in range(24):
-    set_camera(azim, 16, 1250)
+    set_camera(azim, 16, 1750, 1030)
     snap()
 
 print("frames:", frame_no[0])
-mp4 = os.path.join(OUT_DIR, "UV-C_stand_V2_assembly_and_motion.mp4")
-subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", os.path.join(FRAMES, "f%05d.png"),
-                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "23", "-movflags", "+faststart", mp4], check=True)
+from overlay import compose_all
+compose_all(FRAMES, CAPTIONS, W, H)
+mp4 = os.path.join(OUT_DIR, "UV-C_stand_Rayateb_vertical.mp4")
+subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", os.path.join(FRAMES, "o%05d.png"),
+                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "22", "-movflags", "+faststart", mp4], check=True)
 print(mp4, os.path.getsize(mp4))
