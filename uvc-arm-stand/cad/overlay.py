@@ -1,24 +1,36 @@
 """Persian captions + Rayateb logo overlays for the vertical clip (PIL, RTL via libraqm).
 
-Put the real company logo at video/assets/logo.png (transparent PNG) and re-run video.py;
-without it a plain text wordmark is drawn instead.
+Logo: video/assets/logo_rayateb.jpg - its sun ring is cut out and spun in the header corner.
+Font: drop BNazanin.ttf (and optionally BNazaninBold.ttf) into video/assets/ to use B Nazanin;
+otherwise Vazirmatn is used. Re-run with: python video.py --compose-only
 """
 import glob
 import os
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ASSETS = os.path.join(os.path.dirname(__file__), "..", "video", "assets")
-F_REG = os.path.join(ASSETS, "Vazirmatn-Regular.ttf")
-F_BOLD = os.path.join(ASSETS, "Vazirmatn-ExtraBold.ttf")
-LOGO = os.path.join(ASSETS, "logo.png")
+def _pick(*names):
+    for n in names:
+        p = os.path.join(ASSETS, n)
+        if os.path.exists(p):
+            return p
+    raise FileNotFoundError(names)
 
-ACCENT = (92, 60, 190)       # UV violet
+
+F_REG = _pick("BNazanin.ttf", "Vazirmatn-Regular.ttf")
+F_BOLD = _pick("BNazaninBold.ttf", "BNazanin.ttf", "Vazirmatn-ExtraBold.ttf")
+LOGO = os.path.join(ASSETS, "logo_rayateb.jpg")
+RING_C, RING_R = (783, 850), (440, 730)   # sun-ring centre / annulus radii in the logo file (px)
+SPIN_SEC = 8.0                            # one revolution of the ring
+
+ACCENT = (34, 101, 160)      # Rayateb blue
+RED = (208, 35, 42)          # Rayateb red
 INK = (25, 27, 35)
 MUTED = (85, 90, 105)
 FA_DIGITS = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
 COMPANY = "رایاطب"
 PROJECT = "پایه UV-C چهاربازو ۳۰ وات"
-INTRO, OUTRO = 48, 72
+INTRO, OUTRO = 60, 84
 
 
 def font(path, size):
@@ -43,30 +55,53 @@ def wrap(d, text, f, width):
     return lines
 
 
-def logo_image(h):
-    if os.path.exists(LOGO):
-        im = Image.open(LOGO).convert("RGBA")
-        return im.resize((int(im.width * h / im.height), h), Image.LANCZOS)
-    # fallback wordmark (replace with the real logo file)
-    f = font(F_BOLD, int(h * 0.62))
-    tmp = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
-    tw = int(tmp.textlength(COMPANY, font=f, direction="rtl", language="fa"))
-    im = Image.new("RGBA", (tw + int(h * 0.7), h), (0, 0, 0, 0))
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((0, 0, im.width - 1, h - 1), radius=h // 4, fill=ACCENT + (255,))
-    rtl(d, (im.width - h * 0.35, h * 0.47), COMPANY, f, (255, 255, 255), anchor="rm")
-    return im
+_LOGO_CACHE = {}
 
 
-def header(img, W):
+def _logo_parts(h):
+    """(static layer, ring layer, centre) scaled to height h; ring pixels removed from static."""
+    if h in _LOGO_CACHE:
+        return _LOGO_CACHE[h]
+    import numpy as np
+    src = Image.open(LOGO).convert("RGB")
+    a = np.asarray(src).astype(np.int16)
+    yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
+    r = np.hypot(xx - RING_C[0], yy - RING_C[1])
+    red = (a[..., 0] > 140) & (a[..., 1] < 110)
+    from PIL import ImageFilter as _IF
+    text = ((a[..., 0] < 70) & (a[..., 2] > 110)) | red          # dark-blue "RAYA" + red text
+    near_text = np.asarray(Image.fromarray((text * 255).astype("uint8")).filter(_IF.MaxFilter(13))) > 0
+    ring = (r > RING_R[0]) & (r < RING_R[1]) & (a.min(2) < 245) & ~near_text
+    static = a.copy(); static[ring] = 255
+    ringimg = np.full_like(a, 255); ringimg[ring] = a[ring]
+    nonw = np.nonzero(a.min(2) < 235)
+    box = (nonw[1].min() - 10, nonw[0].min() - 10, nonw[1].max() + 10, nonw[0].max() + 10)
+    k = h / (box[3] - box[1])
+    size = (int((box[2] - box[0]) * k), h)
+    st = Image.fromarray(static.astype("uint8")).crop(box).resize(size, Image.LANCZOS)
+    rg = Image.fromarray(ringimg.astype("uint8")).crop(box).resize(size, Image.LANCZOS)
+    c = ((RING_C[0] - box[0]) * k, (RING_C[1] - box[1]) * k)
+    _LOGO_CACHE[h] = (st, rg, c)
+    return _LOGO_CACHE[h]
+
+
+def logo_image(h, t=0.0):
+    """Logo at height h with the sun ring rotated for time t (s); opaque on white."""
+    from PIL import ImageChops
+    st, rg, c = _logo_parts(h)
+    rot = rg.rotate(-360.0 * t / SPIN_SEC, resample=Image.BICUBIC, center=c, fillcolor=(255, 255, 255))
+    return ImageChops.multiply(st, rot).convert("RGBA")
+
+
+def header(img, W, t):
     d = ImageDraw.Draw(img, "RGBA")
-    d.rectangle((0, 0, W, 210), fill=(255, 255, 255, 225))
-    d.rectangle((0, 206, W, 212), fill=ACCENT + (255,))
-    lg = logo_image(110)
-    img.alpha_composite(lg, (W - 50 - lg.width, 50))
-    x = W - 80 - lg.width
-    rtl(d, (x, 52), PROJECT, font(F_BOLD, 44), INK)
-    rtl(d, (x, 118), "مدل سه‌بعدی مونتاژ و حرکت بازوها", font(F_REG, 30), MUTED)
+    d.rectangle((0, 0, W, 210), fill=(255, 255, 255, 255))
+    d.rectangle((0, 206, W, 212), fill=RED + (255,))
+    lg = logo_image(170, t)
+    img.alpha_composite(lg, (W - 30 - lg.width, 20))
+    x = W - 55 - lg.width
+    rtl(d, (x, 50), PROJECT, font(F_BOLD, 40), INK)
+    rtl(d, (x, 112), "مدل سه‌بعدی مونتاژ و حرکت بازوها", font(F_REG, 28), MUTED)
 
 
 def footer(img, W, H, cap, progress):
@@ -99,14 +134,16 @@ def footer(img, W, H, cap, progress):
            font=font(F_REG, 24), fill=MUTED, anchor="mm", direction="rtl", language="fa")
 
 
-def title_card(base, W, H, lines, alpha=1.0):
+def title_card(base, W, H, lines, alpha=1.0, t=0.0):
     img = base.copy()
-    veil = Image.new("RGBA", img.size, (255, 255, 255, int(215 * alpha)))
+    veil = Image.new("RGBA", img.size, (255, 255, 255, int(255 * alpha)))
     img.alpha_composite(veil)
     d = ImageDraw.Draw(img, "RGBA")
-    lg = logo_image(170)
-    img.alpha_composite(lg, ((W - lg.width) // 2, H // 2 - 330))
-    y = H // 2 - 100
+    lg = logo_image(420, t)
+    if alpha < 1:
+        lg.putalpha(int(255 * alpha))
+    img.alpha_composite(lg, ((W - lg.width) // 2, H // 2 - 560))
+    y = H // 2 - 60
     for txt, f, col in lines:
         for ln in wrap(d, txt, f, W - 140):
             d.text((W // 2, y), ln, font=f, fill=col, anchor="ma", direction="rtl", language="fa")
@@ -131,15 +168,15 @@ def compose_all(frames_dir, captions, W, H):
              ("طراحی فلزی، مونتاژ مرحله‌به‌مرحله و حرکت بازوها", font(F_REG, 36), MUTED),
              ("۴ بازوی مستقل · قفل هر ۱۵ درجه · ۰ تا ۱۸۰ درجه", font(F_REG, 34), ACCENT)]
     for i in range(INTRO):
-        save(title_card(first, W, H, intro, 1.0 if i < INTRO - 12 else (INTRO - i) / 12))
+        save(title_card(first, W, H, intro, 1.0 if i < INTRO - 12 else (INTRO - i) / 12, t=i / 24))
     for i, (fp, cap) in enumerate(zip(files, captions)):
         img = Image.open(fp).convert("RGBA")
-        header(img, W)
+        header(img, W, (INTRO + i) / 24)
         footer(img, W, H, cap, (i + 1) / n)
         save(img)
     last = Image.open(files[-1]).convert("RGBA")
-    outro = [(COMPANY, font(F_BOLD, 66), ACCENT),
+    outro = [("شرکت دانش‌بنیان رایا طب هگمتانه نوین", font(F_BOLD, 46), RED),
              (PROJECT, font(F_BOLD, 42), INK),
              ("ارتفاع محور ۱۱۵۰ · ارتفاع کل ۲۰۶۰ · دهانه ۲۰۱۰ میلی‌متر · وزن حدود ۳۸ کیلوگرم", font(F_REG, 32), MUTED)]
     for i in range(OUTRO):
-        save(title_card(last, W, H, outro, min(1.0, (i + 1) / 12)))
+        save(title_card(last, W, H, outro, min(1.0, (i + 1) / 12), t=(INTRO + n + i) / 24))
