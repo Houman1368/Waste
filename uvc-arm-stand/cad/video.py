@@ -1,14 +1,14 @@
-"""Animated clip: step-by-step assembly of V2, then arm motion (locks every 15°)."""
+"""Animated vertical clip: step-by-step assembly, then arm motion (locks every 15°)."""
 import math
 import os
 import subprocess
 import sys
 import numpy as np
 import vtk
-from model import V2, arm_canonical, static_parts, part_plunger, part_hinge_fixed, rot180
+from model import C, arm_canonical, static_parts, part_plunger, part_hinge_fixed, rot180
 from export import _polydata, color_of, COL
 
-c = V2
+c = C
 FPS = 24
 W, H = 1080, 1920  # vertical (portrait) clip
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "video")
@@ -62,8 +62,8 @@ static_group("صفحهٔ پایه (B1)", "ورق فولادی ۶ میلی‌مت
 static_group("فلنج و لچکی‌های ستون", "فلنج ۲۶۰ × ۲۲۰ × ۶ با ۴ پیچ M10 به صفحهٔ پایه", ["C1_flange"] + [k for k in S if "gusset" in k], (0, 0, 600))
 static_group("ستون (C1)", "باکس ورق ۱٫۵ میلی‌متر، ۱۶۰ × ۱۲۰ × ۱۰۵۰ با درپوش بالا", ["C1_column", "C1_top_cap"], (0, 0, 1400))
 static_group("جعبهٔ باالست (B2)", "باالست‌ها، فیوز و ترمینال — وزن پایین، پایداری بیشتر", ["B2_ballast_box"], (0, 0, 1500))
-static_group("پنل کنترل، دستهٔ هل‌دادن و درب سرویس", "پنل و دسته روی وجه کناری، درب سرویس پشت ستون", ["C3_panel_box", "handle", "C2_service_door"], (500, 0, 0))
-static_group("صفحه‌های سر (T1) جلو و پشت", "ورق ۴ میلی‌متر، ۲۴۰ × ۱۶۰ — محور لولا در ارتفاع ۱۱۵۰", ["T1_head_plate_front", "T1_head_plate_back"], (0, 0, 700))
+static_group("پنل کنترل، دستهٔ هل‌دادن و درب سرویس", "پنل روی وجه چپ، دسته روی وجه راست، درب سرویس پشت ستون", ["C3_panel_box", "handle", "C2_service_door"], (500, 0, 0))
+static_group("صفحه‌های سر (T1) جلو و پشت", "ورق ۴ میلی‌متر، ۲۵۰ × ۱۶۰ با ۶ پیچ خزینه M8 — محور لولا در ارتفاع ۱۱۵۰", ["T1_head_plate_front", "T1_head_plate_back", "T1_screws_front", "T1_screws_back"], (0, 0, 700))
 
 canon = arm_canonical(c)
 hinge_items, arm_items = [], []
@@ -82,7 +82,7 @@ for face in ("F", "B"):
             acts.append(a)
             arm_items.append((a, (face, side), (0, (-700 if face == "F" else 700), 0)))
         ARM_ACTORS[(face, side)] = acts
-groups.append(("پین‌های قفل و محور لولا", "پین فنری M8، واشر تفلونی، پیچ M10 با بوش برنجی", hinge_items))
+groups.append(("پین‌های قفل و محور لولا", "پین فنری M12 با پین Ø۶ و حالت استراحت، واشر تفلونی، پیچ M10 با بوش برنجی", hinge_items))
 groups.append(("چهار بازوی لامپ (A1)", "ناودانی رفلکتور آلومینیومی، لامپ UV-C T8 سی‌وات، دیسک تقسیم H2", arm_items))
 
 

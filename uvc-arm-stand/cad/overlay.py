@@ -177,6 +177,6 @@ def compose_all(frames_dir, captions, W, H):
     last = Image.open(files[-1]).convert("RGBA")
     outro = [("شرکت دانش‌بنیان رایا طب هگمتانه نوین", font(F_BOLD, 46), RED),
              (PROJECT, font(F_BOLD, 42), INK),
-             ("ارتفاع محور ۱۱۵۰ · ارتفاع کل ۲۰۶۰ · دهانه ۲۰۱۰ میلی‌متر · وزن حدود ۳۸ کیلوگرم", font(F_REG, 32), MUTED)]
+             ("ارتفاع محور ۱۱۵۰ · ارتفاع کل ۲۰۶۰ · دهانه ۲۰۲۰ میلی‌متر · وزن حدود ۳۸ کیلوگرم", font(F_REG, 32), MUTED)]
     for i in range(OUTRO):
         save(title_card(last, W, H, outro, min(1.0, (i + 1) / 12), t=(INTRO + n + i) / 24))

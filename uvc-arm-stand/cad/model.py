@@ -1,16 +1,13 @@
-"""Parametric 3D model of the 4-arm UV-C stand (metal parts).
+"""Parametric 3D model of the 4-arm UV-C stand (metal parts) - final design.
 
 Coordinates (mm): x = across the front face (500 side of base), y = depth
 (front face of column at y = -60), z = up from the floor. Column axis at x=y=0.
 
-Arm angle convention (from the plan): 0 = arm down beside column (parked),
-90 = horizontal, 180 = vertical up. Right arms swing to +x, left arms to -x.
-
-Two configurations:
-  V1 - exactly as the PDF plan (with the one consistent reading where needed)
-  V2 - corrected design that passes all fit checks
+Arm angle convention: 0 = arm down beside column (parked), 90 = horizontal,
+180 = vertical up. Right arms swing to +x, left arms to -x.
+All dimensions live in `Cfg`; change them there and re-run checks.py / export.py.
 """
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass
 import math
 import cadquery as cq
 
@@ -26,6 +23,11 @@ def cyl_y(r, y0, y1, x=0.0, z=0.0):
     """Cylinder along y from y0 to y1."""
     lo, hi = min(y0, y1), max(y0, y1)
     return cq.Solid.makeCylinder(r, hi - lo, V(x, lo, z), V(0, 1, 0))
+
+
+def cyl_x(r, x0, x1, y=0.0, z=0.0):
+    lo, hi = min(x0, x1), max(x0, x1)
+    return cq.Solid.makeCylinder(r, hi - lo, V(lo, y, z), V(1, 0, 0))
 
 
 def cyl_z(r, z0, z1, x=0.0, y=0.0):
@@ -53,53 +55,58 @@ def cut(base, *tools):
     return base.clean()
 
 
-# ---------------------------------------------------------------- config
+# ---------------------------------------------------------------- design parameters
 @dataclass
 class Cfg:
-    name: str
-    caster_h: float = 100.0          # Ø75 swivel caster mounting height (assumed)
+    name: str = "UVC_stand"
+    caster_h: float = 100.0          # Ø75 swivel caster mounting height (measure the real caster!)
+    # base B1 / ballast box B2
     base_x: float = 500.0
     base_y: float = 400.0
     base_t: float = 6.0
     b2_x: float = 460.0
     b2_y: float = 360.0
     b2_h: float = 80.0
+    # column C1
     col_x: float = 160.0             # front/back faces are the 160 faces
     col_y: float = 120.0
     col_h: float = 1050.0
     col_t: float = 1.5
     cap_t: float = 4.0
-    flange_x: float = 200.0
-    flange_y: float = 160.0
+    flange_x: float = 260.0
+    flange_y: float = 220.0
     flange_t: float = 6.0
-    flange_bolt_inset: float = 10.0  # bolt centre from flange edge
-    gusset_h: float = 100.0          # vertical leg
-    gusset_l: float = 100.0          # horizontal leg
+    flange_bolt_inset: float = 25.0  # M10 bolt centre from flange edge
+    gusset_h: float = 60.0           # vertical leg (stays under B2 cover)
+    gusset_l: float = 50.0           # horizontal leg (= flange margin)
     gusset_t: float = 4.0
-    # head plate T1
-    t1_w: float = 220.0
+    cable_hole_d: float = 16.0       # grommet holes for arm cables, front & back face below T1
+    cable_hole_x: float = 45.0
+    # head plate T1 (front + back)
+    t1_w: float = 250.0
     t1_h: float = 160.0
     t1_t: float = 4.0
-    t1_top_above_col: float = 0.0    # T1 top relative to column body top
-    hinge_dx: float = 70.0           # hinge axis x from column centre (140 apart)
+    t1_top_above_col: float = 28.0   # T1 stands above the column top -> hinge axis at 1150
+    hinge_dx: float = 100.0          # hinge axes 200 apart, outside the column outline
     hinge_from_top: float = 40.0
-    # index disc H2 / plunger H4
-    disc_d: float = 110.0
+    # index disc H2 / index plunger H4 (spring loaded, M12x1.5, pin Ø6, with rest position)
+    disc_d: float = 130.0
     disc_t: float = 5.0
-    index_r: float = 40.0
-    index_hole_d: float = 6.5
-    plunger_beta: float = 0.0        # plunger direction from hinge (arm-angle convention)
-    plunger_behind: bool = True      # plunger body/knob behind T1 (only option with disc in front)
+    index_r: float = 50.0
+    index_hole_d: float = 6.2        # Ø6 H8 after reaming -> minimal play
+    plunger_beta: float = 0.0        # plunger straight below the hinge axis
+    plunger_nut_af: float = 18.0     # M12 weld nut on back of T1
+    plunger_knob_d: float = 25.0
     pin_d: float = 6.0
     pin_protrusion: float = 8.0      # pin length in front of T1 face
     teflon_t: float = 1.0
-    # bracket H1
+    # bracket H1 (U around back of channel, bolted with 4 x M5 through the side walls)
     br_len: float = 60.0
     br_t: float = 4.0
     br_leg: float = 26.0
-    br_edge_from_end: float = 50.0
-    br_chamfer: float = 0.0
-    # arm A1
+    br_edge_from_end: float = 10.0   # hinge axis 40 from the arm end
+    br_bolt_dz: float = 18.0         # M5 holes at ±18 along the arm, 13 from channel floor
+    # arm A1 (aluminium 1 mm, blank 170 x 950)
     arm_len: float = 950.0
     arm_w: float = 60.0
     arm_d: float = 45.0
@@ -108,25 +115,23 @@ class Cfg:
     lamp_d: float = 26.0
     lamp_axis_from_floor: float = 25.0
     socket_gap: float = 908.0
-    # hinge bolt
-    bolt: str = "M10x60 hex, head inside channel, nut behind T1"
-    bolt_len: float = 60.0
-    bolt_head_h: float = 6.4
-    bolt_head_af: float = 16.0
+    grommet_from_end: float = 90.0   # Ø10 cable grommet in the side wall
+    # hinge bolt H3: ISO 7380 M10x30 (head inside channel) + flanged bronze bush + nyloc nut behind T1
+    bolt_len: float = 30.0
+    bolt_head_h: float = 5.5
+    bolt_head_d: float = 17.5
     nut_h: float = 10.0
-    weld_nut_relief: float = 0.0     # Ø of relief hole in column wall behind hinge (0 = none)
-    # panel / handle (C3)
-    panel_face: str = "front"
+    # control panel C3 (left side face), push handle (right side face), service door C2 (back face)
     panel_w: float = 110.0
     panel_d: float = 60.0
     panel_h: float = 180.0
-    panel_top: float = 1050.0
-    handle_face: str = "front"
+    panel_top: float = 990.0
     handle_len: float = 300.0
+    handle_top: float = 1000.0
     handle_proj: float = 50.0
-    # service door C2 (back face)
+    door_w: float = 120.0
+    door_h: float = 600.0
     door_z0: float = 300.0
-    notes: list = field(default_factory=list)
 
     # derived ---------------------------------------------------------
     @property
@@ -177,24 +182,14 @@ class Cfg:
     def y_lamp(self):
         return self.y_ch_back - self.lamp_axis_from_floor
 
+    @property
+    def t1_bolts(self):
+        """Countersunk M8 (flush) into M8 rivet nuts in the column face: (x, z)."""
+        z0 = self.z_t1_top - self.t1_h
+        return [(x, z0 + 20) for x in (-55, -20, 20, 55)] + [(x, self.z_col1 - 20) for x in (-20, 20)]
 
-V1 = Cfg(name="V1_as_drawn")
 
-V2 = replace(
-    V1,
-    name="V2_corrected",
-    flange_x=260.0, flange_y=220.0, flange_bolt_inset=25.0,
-    gusset_h=60.0, gusset_l=50.0,
-    hinge_dx=95.0,                    # hinges outside the column outline -> nut & plunger reachable from the side
-    t1_w=240.0, t1_top_above_col=1150.0 + 40.0 - V1.z_col1,  # T1 stands 28 above column top -> axis at 1150
-    disc_d=130.0, index_r=50.0,
-    plunger_beta=0.0,
-    br_edge_from_end=10.0,
-    bolt="ISO 7380 M10x30 button head inside channel + nyloc nut behind T1 (outside column)",
-    bolt_len=30.0, bolt_head_h=5.5, bolt_head_af=17.5, nut_h=10.0,
-    panel_face="right", panel_top=990.0,
-    handle_face="right",
-)
+C = Cfg()
 
 
 # ---------------------------------------------------------------- parts
@@ -245,53 +240,40 @@ def part_gussets(c: Cfg):
 
 
 def part_flange_bolt_envelopes(c: Cfg):
-    """M10 nut (17 AF, h8) on flange + Ø28 socket-wrench envelope 40 high."""
+    """Ø28 socket-wrench envelope, 40 high, over each M10 flange bolt."""
     fx, fy = c.flange_x / 2, c.flange_y / 2
-    out = []
-    for sx in (-1, 1):
-        for sy in (-1, 1):
-            x, y = sx * (fx - c.flange_bolt_inset), sy * (fy - c.flange_bolt_inset)
-            out.append(cyl_z(14, c.z_col0, c.z_col0 + 40, x, y))
-    return out
+    return [cyl_z(14, c.z_col0, c.z_col0 + 40, sx * (fx - c.flange_bolt_inset), sy * (fy - c.flange_bolt_inset))
+            for sx in (-1, 1) for sy in (-1, 1)]
 
 
 def part_column(c: Cfg):
     hx, hy, t = c.col_x / 2, c.col_y / 2, c.col_t
     tube = cut(box(-hx, hx, -hy, hy, c.z_col0, c.z_col1), box(-hx + t, hx - t, -hy + t, hy - t, c.z_col0 - 1, c.z_col1 + 1))
-    if c.weld_nut_relief:
-        for side in (1, -1):
-            for sx in (-1, 1):
-                tube = tube.cut(cyl_y(c.weld_nut_relief / 2, -side * (hy + 1), -side * (hy - t - 1), sx * c.hinge_dx, c.z_axis))
+    zc = c.z_t1_top - c.t1_h - 25
+    holes = [cyl_y(c.cable_hole_d / 2, -hy - 1, hy + 1, sx * c.cable_hole_x, zc) for sx in (-1, 1)]
+    holes += [cyl_y(5, -hy - 1, hy + 1, x, z) for x, z in c.t1_bolts]   # Ø10 for M8 rivet nuts
     cap = box(-hx, hx, -hy, hy, c.z_col1, c.z_col1 + c.cap_t)
-    return tube.clean(), cap
+    return cut(tube, *holes), cap
 
 
 def part_door(c: Cfg):
-    return box(-70, 70, c.col_y / 2, c.col_y / 2 + 1.2, c.door_z0, c.door_z0 + 600)
+    return box(-c.door_w / 2, c.door_w / 2, c.col_y / 2, c.col_y / 2 + 1.2, c.door_z0, c.door_z0 + c.door_h)
 
 
 def part_panel(c: Cfg):
-    z1, z0 = c.panel_top, c.panel_top - c.panel_h
-    t = 1.2  # sheet box, open toward the column
-    if c.panel_face == "front":
-        return cut(box(-c.panel_w / 2, c.panel_w / 2, c.y_face - c.panel_d, c.y_face, z0, z1),
-                   box(-c.panel_w / 2 + t, c.panel_w / 2 - t, c.y_face - c.panel_d + t, c.y_face + 1, z0 + t, z1 - t))
-    return cut(box(c.col_x / 2, c.col_x / 2 + c.panel_d, -c.panel_w / 2, c.panel_w / 2, z0, z1),
-               box(c.col_x / 2 - 1, c.col_x / 2 + c.panel_d - t, -c.panel_w / 2 + t, c.panel_w / 2 - t, z0 + t, z1 - t))
+    """Control panel box on the LEFT side face, open toward the column."""
+    z1, z0, t, x0 = c.panel_top, c.panel_top - c.panel_h, 1.2, -c.col_x / 2
+    return cut(box(x0 - c.panel_d, x0, -c.panel_w / 2, c.panel_w / 2, z0, z1),
+               box(x0 - c.panel_d + t, x0 + 1, -c.panel_w / 2 + t, c.panel_w / 2 - t, z0 + t, z1 - t))
 
 
 def part_handle(c: Cfg):
-    """300 mm push handle (Ø25 bar on two standoffs) below the panel."""
-    z = c.panel_top - c.panel_h - 40
-    if c.handle_face == "front":
-        L = c.handle_len / 2
-        return fuse(cq.Solid.makeCylinder(12.5, c.handle_len, V(-L, c.y_face - c.handle_proj, z), V(1, 0, 0)),
-                    cyl_y(8, c.y_face, c.y_face - c.handle_proj, -L + 15, z),
-                    cyl_y(8, c.y_face, c.y_face - c.handle_proj, L - 15, z))
-    x = c.col_x / 2 + c.handle_proj
-    return fuse(cyl_z(12.5, z - c.handle_len, z, x, 0),
-                cq.Solid.makeCylinder(8, c.handle_proj, V(c.col_x / 2, 0, z - 15), V(1, 0, 0)),
-                cq.Solid.makeCylinder(8, c.handle_proj, V(c.col_x / 2, 0, z - c.handle_len + 15), V(1, 0, 0)))
+    """300 mm vertical push handle (Ø25 bar on two standoffs) on the RIGHT side face."""
+    x, z1 = c.col_x / 2 + c.handle_proj, c.handle_top
+    z0 = z1 - c.handle_len
+    return fuse(cyl_z(12.5, z0, z1, x, 0),
+                cyl_x(8, c.col_x / 2, x, 0, z1 - 15),
+                cyl_x(8, c.col_x / 2, x, 0, z0 + 15))
 
 
 def plunger_xz(c: Cfg, side):
@@ -306,36 +288,30 @@ def part_t1(c: Cfg):
     p = box(-hw, hw, c.y_t1_front, c.y_face, z0, z1)
     holes = []
     for s in (-1, 1):
-        holes.append(cyl_y(5.25, c.y_face + 1, c.y_t1_front - 1, s * c.hinge_dx, c.z_axis))
+        holes.append(cyl_y(5.25, c.y_face + 1, c.y_t1_front - 1, s * c.hinge_dx, c.z_axis))   # M10
         px, pz = plunger_xz(c, s)
-        holes.append(cyl_y(3.4, c.y_face + 1, c.y_t1_front - 1, px, pz))       # M8 tap / pin hole
-    for x in (-55, -20, 20, 55):  # 4 x Ø9 mounting holes, 20 from bottom edge
-        holes.append(cyl_y(4.5, c.y_face + 1, c.y_t1_front - 1, x, z0 + 20))
+        holes.append(cyl_y(6.5, c.y_face + 1, c.y_t1_front - 1, px, pz))                   # pin Ø6 + clearance
+    for x, z in c.t1_bolts:
+        holes.append(cyl_y(4.5, c.y_face + 1, c.y_t1_front - 1, x, z))                      # Ø9, countersunk
     return cut(p, *holes)
 
 
-def part_t1_bolts(c: Cfg):
-    z0 = c.z_t1_top - c.t1_h
-    return [cyl_y(6.5, c.y_t1_front, c.y_t1_front - 5.3, x, z0 + 20) for x in (-55, -20, 20, 55)]
-
-
 def part_plunger(c: Cfg, side):
-    """Index plunger: pin in front of T1, threaded body + knob behind T1 (toward column)."""
+    """Index plunger: pin in front of T1; weld nut, threaded body + pull knob behind T1."""
     px, pz = plunger_xz(c, side)
     pin = cyl_y(c.pin_d / 2, c.y_t1_front, c.y_t1_front - c.pin_protrusion, px, pz)
-    body = fuse(hex_y(13, c.y_face, c.y_face + 8, px, pz),          # M8 weld nut
-                cyl_y(4, c.y_face + 8, c.y_face + 22, px, pz),       # plunger body
-                cyl_y(10, c.y_face + 22, c.y_face + 37, px, pz))     # pull knob
+    body = fuse(hex_y(c.plunger_nut_af, c.y_face, c.y_face + 10, px, pz),          # M12 weld nut
+                cyl_y(6, c.y_face + 10, c.y_face + 28, px, pz),                      # threaded body
+                cyl_y(c.plunger_knob_d / 2, c.y_face + 28, c.y_face + 46, px, pz))   # pull knob
     return pin, body
 
 
 def part_hinge_fixed(c: Cfg, side):
-    """Parts of the hinge that do not rotate: teflon washer, nut/weld-nut behind T1, bolt shank."""
+    """Non-rotating hinge parts: teflon washer, bolt shank, nyloc nut behind T1."""
     x, z = side * c.hinge_dx, c.z_axis
     washer = cut(cyl_y(15, c.y_t1_front, c.y_disc0, x, z), cyl_y(7, c.y_t1_front + 1, c.y_disc0 - 1, x, z))
     head_face = c.y_ch_back - c.arm_t - 2.0          # under-head face (after 2 mm washer) inside channel
-    shank_end = head_face + c.bolt_len               # toward +y (column)
-    shank = cyl_y(5, head_face, shank_end, x, z)
+    shank = cyl_y(5, head_face, head_face + c.bolt_len, x, z)
     nut = hex_y(17, c.y_face, c.y_face + c.nut_h, x, z)
     return washer, shank, nut
 
@@ -352,7 +328,10 @@ def arm_canonical(c: Cfg):
               box(hw - t, hw, yb - c.arm_d, yb, zbot, ztop),
               box(-hw, -hw + c.arm_lip, yb - c.arm_d, yb - c.arm_d + t, zbot, ztop),
               box(hw - c.arm_lip, hw, yb - c.arm_d, yb - c.arm_d + t, zbot, ztop))
-    ch = ch.cut(cyl_y(7, yb + 1, yb - t - 1, 0, 0))
+    y_m5 = yb - 13
+    ch = cut(ch, cyl_y(7, yb + 1, yb - t - 1, 0, 0),                                   # Ø14 bush hole
+             *[cyl_x(2.75, -hw - 1, hw + 1, y_m5, dz) for dz in (-c.br_bolt_dz, c.br_bolt_dz)],
+             cyl_x(5, hw - 2, hw + 1, yb - 22, ztop - c.grommet_from_end))             # cable grommet Ø10
     caps = [box(-hw + t, hw - t, yb - c.arm_d + t, yb - t, ztop - t, ztop),
             box(-hw + t, hw - t, yb - c.arm_d + t, yb - t, zbot, zbot + t)]
     sock_d = (c.arm_len - 2 * t - c.socket_gap) / 2
@@ -365,7 +344,8 @@ def arm_canonical(c: Cfg):
     br = fuse(box(-bw, bw, c.y_disc1 - bt, c.y_disc1, -bl / 2, bl / 2),
               box(-bw, -hw, yb - c.br_leg, yb, -bl / 2, bl / 2),
               box(hw, bw, yb - c.br_leg, yb, -bl / 2, bl / 2))
-    br = br.cut(cyl_y(7, c.y_disc1 + 1, yb - 1, 0, 0))
+    br = cut(br, cyl_y(7, c.y_disc1 + 1, yb - 1, 0, 0),
+             *[cyl_x(2.75, -bw - 1, bw + 1, y_m5, dz) for dz in (-c.br_bolt_dz, c.br_bolt_dz)])
     # disc H2 with centre hole + 13 index holes
     disc = cyl_y(c.disc_d / 2, c.y_disc0, c.y_disc1)
     holes = [cyl_y(7, c.y_disc0 + 1, c.y_disc1 - 1)]
@@ -374,8 +354,8 @@ def arm_canonical(c: Cfg):
         holes.append(cyl_y(c.index_hole_d / 2, c.y_disc0 + 1, c.y_disc1 - 1,
                            c.index_r * math.sin(g), -c.index_r * math.cos(g)))
     disc = cut(disc, *holes)
-    # bolt head + washer inside channel
-    head = fuse(cyl_y(10, yb - t, yb - t - 2), hex_y(c.bolt_head_af, yb - t - 2, yb - t - 2 - c.bolt_head_h))
+    # button-head bolt + washer inside channel
+    head = fuse(cyl_y(10, yb - t, yb - t - 2), cyl_y(c.bolt_head_d / 2, yb - t - 2, yb - t - 2 - c.bolt_head_h))
     return {"channel": ch, "caps": fuse(*caps), "sockets": fuse(*sockets), "lamp": lamp,
             "bracket": br, "disc": disc, "bolt_head": head}
 
@@ -408,6 +388,9 @@ def static_parts(c: Cfg):
         "T1_head_plate_front": part_t1(c),
         "T1_head_plate_back": rot180(part_t1(c)),
     }
+    screws = fuse(*[cyl_y(4.5, c.y_face, c.y_t1_front, x, z) for x, z in c.t1_bolts])   # flush countersunk M8
+    p["T1_screws_front"] = screws
+    p["T1_screws_back"] = rot180(screws)
     for i, g in enumerate(part_gussets(c)):
         p[f"C1_gusset_{i+1}"] = g
     for i, cs in enumerate(part_casters(c)):

@@ -493,7 +493,7 @@ $SKPOLY
   9
 $TDCREATE
  40
-2461323.5308101852
+2461323.603888889
   9
 $TDUCREATE
  40
@@ -501,7 +501,7 @@ $TDUCREATE
   9
 $TDUPDATE
  40
-2461323.5308101852
+2461323.603888889
   9
 $TDUUPDATE
  40
@@ -933,11 +933,11 @@ $PSTYLEMODE
   9
 $FINGERPRINTGUID
   2
-{943838A2-CF79-4338-B2F9-DA3E601BC085}
+{0D796D2A-9CB1-47DD-8678-6FDE74863A7D}
   9
 $VERSIONGUID
   2
-{DABE4F29-0551-4AB9-B46C-D42DC46AAB38}
+{9FD3A022-9286-4422-A018-63547E398C97}
   9
 $EXTNAMES
 290
@@ -1327,9 +1327,9 @@ ISM
   0
 CLASS
   1
-ACDBPLACEHOLDER
+LAYOUT
   2
-AcDbPlaceHolder
+AcDbLayout
   3
 ObjectDBX Classes
  90
@@ -1343,9 +1343,9 @@ ObjectDBX Classes
   0
 CLASS
   1
-LAYOUT
+ACDBPLACEHOLDER
   2
-AcDbLayout
+AcDbPlaceHolder
   3
 ObjectDBX Classes
  90
@@ -1425,7 +1425,7 @@ AcDbViewportTableRecord
  37
 0.0
  40
-106.5
+106.2
  41
 1.34
  42
@@ -2065,7 +2065,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2085,7 +2085,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2105,7 +2105,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2125,7 +2125,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2145,7 +2145,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2165,7 +2165,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2185,7 +2185,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2205,7 +2205,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2225,7 +2225,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2245,7 +2245,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2265,7 +2265,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2285,7 +2285,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 CIRCLE
   5
@@ -2305,7 +2305,7 @@ AcDbCircle
  30
 0.0
  40
-3.25
+3.1
   0
 ENDSEC
   0
@@ -3309,7 +3309,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-10-09T12:44:22.643794+00:00
+1.4.4 @ 2026-10-09T14:29:36.193837+00:00
   0
 DICTIONARYVAR
   5
@@ -3321,7 +3321,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-10-09T12:44:22.646486+00:00
+1.4.4 @ 2026-10-09T14:29:36.197144+00:00
   0
 ENDSEC
   0

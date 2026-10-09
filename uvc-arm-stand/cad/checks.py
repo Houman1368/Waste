@@ -1,9 +1,10 @@
-"""Fit / interference / stability checks for V1 (as drawn) and V2 (corrected)."""
+"""Fit / interference / stability checks for the UV-C stand (all 13 arm positions)."""
 import json
 import math
 import sys
-from model import (V1, V2, Cfg, arm_canonical, place_arm, static_parts, part_plunger,
-                   part_hinge_fixed, part_flange_bolt_envelopes, part_t1_bolts, box, rot180)
+import os
+from model import (C, Cfg, arm_canonical, place_arm, static_parts, part_plunger,
+                   part_hinge_fixed, part_flange_bolt_envelopes, box)
 
 TOL = 1.0  # mm^3 - below this an overlap is just touching faces
 ANGLES = list(range(0, 181, 15))
@@ -49,13 +50,14 @@ def run(c: Cfg):
 
     # --- plunger body / knob behind T1 vs column wall
     v = iv(body_r, S["C1_column"]) + iv(body_l, S["C1_column"])
-    add("H4-1", "Index plunger knob reachable (not inside column)", v < TOL,
-        f"knob/body overlap with column wall = {v:.0f} mm³; knob x from column edge = {px - 10 - c.col_x/2:.1f} mm")
+    add("H4-1", "Index plunger knob reachable from the side (≥5 mm from column)",
+        v < TOL and px - c.plunger_knob_d / 2 - c.col_x / 2 >= 5,
+        f"knob/body overlap with column wall = {v:.0f} mm³; gap knob to column side = {px - c.plunger_knob_d/2 - c.col_x/2:.1f} mm")
 
     # --- hinge bolt / nut
     v = sum(iv(s, S["C1_column"]) for s in (shank_r, nut_r, shank_l, nut_l))
     add("H3-1", "Hinge bolt & nut clear of column wall", v < TOL,
-        f"overlap {v:.0f} mm³ ({c.bolt}); nut x from column side = {c.hinge_dx - 9.3 - c.col_x/2:.1f} mm; shank reaches y={c.y_ch_back - c.arm_t - 2 + c.bolt_len:.0f} "
+        f"overlap {v:.0f} mm³ (ISO 7380 M10x{c.bolt_len:.0f} + nyloc nut); nut x from column side = {c.hinge_dx - 9.8 - c.col_x/2:.1f} mm; shank reaches y={c.y_ch_back - c.arm_t - 2 + c.bolt_len:.0f} "
         f"(column face y={c.y_face:.0f})")
     head_low = c.y_ch_back - c.arm_t - 2 - c.bolt_head_h
     lamp_top = c.y_lamp + c.lamp_d / 2
@@ -85,7 +87,6 @@ def run(c: Cfg):
 
     # --- arm sweeps vs static parts (front face; back face is the same rotated 180°)
     statics = {k: s for k, s in S.items() if not k.startswith("B3")}
-    statics["T1_mount_bolts"] = part_t1_bolts(c)[0].fuse(*part_t1_bolts(c)[1:])
     statics["plunger_R_pin_body"] = pin_r.fuse(body_r)
     statics["plunger_L_pin_body"] = pin_l.fuse(body_l)
     statics["hinge_R_fixed"] = wash_r.fuse(shank_r).fuse(nut_r)
@@ -150,7 +151,11 @@ def run(c: Cfg):
     top = arms[1][180]["channel"].BoundingBox().zmax
     span = arms[1][90]["channel"].BoundingBox().xmax - arms[-1][90]["channel"].BoundingBox().xmin
     add("DIM-1", "Hinge axis height ≈ 1150", abs(c.z_axis - 1150) <= 10, f"z axis = {c.z_axis:.0f}")
-    add("DIM-2", "Overall height / span vs plan (≈2100 / ≈2100)", True,
+    arm_in = c.hinge_dx - c.arm_w / 2 - c.br_t
+    add("C2-1", "Service door & cable holes not hidden behind parked arms", c.door_w / 2 < arm_in and
+        c.cable_hole_x + c.cable_hole_d / 2 < arm_in,
+        f"parked arm inner edge x=±{arm_in:.0f}; door edge ±{c.door_w/2:.0f}; cable hole edge ±{c.cable_hole_x + c.cable_hole_d/2:.0f}")
+    add("DIM-2", "Overall height / span", True,
         f"height with arms up = {top:.0f}, span with arms horizontal = {span:.0f} (info only)")
 
     # --- mass
@@ -190,12 +195,9 @@ def run(c: Cfg):
 
 
 if __name__ == "__main__":
-    cfgs = {"V1": V1, "V2": V2}
-    sel = sys.argv[1:] or list(cfgs)
-    out = {}
-    for k in sel:
-        print(f"=== {cfgs[k].name}")
-        out[k] = run(cfgs[k])
-        print(f"  -> {out[k]['n_fail']} failures")
-    with open(f"../results/checks_{'_'.join(sel)}.json", "w") as f:
-        json.dump(out, f, ensure_ascii=False, indent=1)
+    print(f"=== {C.name}")
+    res = run(C)
+    print(f"  -> {res['n_fail']} failures")
+    out = os.path.join(os.path.dirname(__file__), "..", "results", "checks.json")
+    with open(out, "w") as f:
+        json.dump(res, f, ensure_ascii=False, indent=1)

@@ -8,7 +8,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
-from model import V1, V2, Cfg, arm_canonical, place_arm, static_parts, part_plunger, part_hinge_fixed, rot180
+from model import C, Cfg, arm_canonical, place_arm, static_parts, part_plunger, part_hinge_fixed, rot180
 
 OUT = os.path.join(os.path.dirname(__file__), "..")
 STEP_DIR, DXF_DIR, IMG_DIR = (os.path.join(OUT, d) for d in ("step", "dxf", "images"))
@@ -60,15 +60,16 @@ def export_step(c: Cfg, parts, fname):
     asm.save(os.path.join(STEP_DIR, fname), "STEP")
 
 
-# ------------------------------------------------------------------ DXF (V2 laser parts)
+# ------------------------------------------------------------------ DXF (laser-cut parts)
 def dxf_parts(c: Cfg):
     W = cq.Workplane
     out = {}
     # T1 head plate, origin = plate centre-bottom
+    z0 = c.z_t1_top - c.t1_h
     t1 = W("XY").rect(c.t1_w, c.t1_h, centered=(True, False))
     t1 = t1.pushPoints([(s * c.hinge_dx, c.t1_h - c.hinge_from_top) for s in (-1, 1)]).circle(5.25)
-    t1 = t1.pushPoints([(s * c.hinge_dx, c.t1_h - c.hinge_from_top - c.index_r) for s in (-1, 1)]).circle(3.4)
-    t1 = t1.pushPoints([(x, 20) for x in (-55, -20, 20, 55)]).circle(4.5)
+    t1 = t1.pushPoints([(s * c.hinge_dx, c.t1_h - c.hinge_from_top - c.index_r) for s in (-1, 1)]).circle(3.25)
+    t1 = t1.pushPoints([(x, z - z0) for x, z in c.t1_bolts]).circle(4.5)
     out["T1_head_plate_4mm_x2"] = t1
     # H2 index disc
     pts = [(c.index_r * math.sin(math.radians(c.plunger_beta - 15 * k)),
@@ -86,14 +87,25 @@ def dxf_parts(c: Cfg):
     out["C1_flange_6mm"] = fl
     gu = W("XY").polyline([(0, 0), (c.gusset_l, 0), (0, c.gusset_h)]).close()
     out["C1_gusset_4mm_x4"] = gu
-    # H1 bracket flat blank (60 wide, developed length 120) with Ø14 bush hole and 4 x M5 holes
-    h1 = W("XY").rect(120, c.br_len).moveTo(0, 0).circle(7).pushPoints([(-22, -20), (-22, 20), (22, -20), (22, 20)]).circle(2.75)
+    # H1 bracket flat blank: legs 26 | base 68 | legs 26 (developed 120, check bend allowance),
+    # Ø14 bush hole in the base, 4 x Ø5.5 (M5) in the legs 13 from the channel floor
+    h1 = (W("XY").rect(120, c.br_len).moveTo(0, 0).circle(7)
+          .pushPoints([(sx * 45, sy * c.br_bolt_dz) for sx in (-1, 1) for sy in (-1, 1)]).circle(2.75))
     out["H1_bracket_blank_4mm_x4"] = h1
-    # A1 arm blank 170 x 950 (bend lines: 10/45/60/45/10), Ø14 hinge hole, bracket M5 holes
+    # A1 arm blank 950 x 170, bend lines across: lip 10 | wall 45 | floor 60 | wall 45 | lip 10
     e = c.axis_from_end
     a1 = (W("XY").rect(c.arm_len, 170, centered=(False, True)).moveTo(e, 0).circle(7)
-          .pushPoints([(e - 20, -22), (e + 20, -22), (e - 20, 22), (e + 20, 22)]).circle(2.75))
+          .pushPoints([(e + dz, sy * 43) for dz in (-c.br_bolt_dz, c.br_bolt_dz) for sy in (-1, 1)]).circle(2.75)
+          .moveTo(c.grommet_from_end, 52).circle(5))
     out["A1_arm_blank_1mm_x4"] = a1
+    # A2 end cap blank: face 58 x 44 + 10 mm flanges, corner reliefs
+    a2 = W("XY").polyline([(-39, -22), (-29, -22), (-29, -32), (29, -32), (29, -22), (39, -22), (39, 22),
+                           (29, 22), (29, 32), (-29, 32), (-29, 22), (-39, 22)]).close()
+    out["A2_end_cap_blank_1mm_x8"] = a2
+    # C2 service door with 4 fixing holes
+    c2 = W("XY").rect(c.door_w, c.door_h).pushPoints([(sx * (c.door_w / 2 - 10), sy * (c.door_h / 2 - 10))
+                                                     for sx in (-1, 1) for sy in (-1, 1)]).circle(2.1)
+    out["C2_service_door_1.2mm"] = c2
     for k, w in out.items():
         cq.exporters.export(w, os.path.join(DXF_DIR, f"{k}.dxf"))
     return list(out)
@@ -147,51 +159,38 @@ def render(parts, fname, view=(-1, -1.4, 0.7), focal=None, height=None, title=No
     w = vtk.vtkPNGWriter(); w.SetFileName(os.path.join(IMG_DIR, fname)); w.SetInputConnection(f.GetOutputPort()); w.Write()
 
 
-def matrix_plot(res):
-    fig, axs = plt.subplots(1, 2, figsize=(11, 5), dpi=110)
-    for ax, key in zip(axs, ("V1", "V2")):
-        m = np.array(res[key]["arm_arm_matrix"]["rows_right"]) > 1
-        ang = res[key]["arm_arm_matrix"]["angles"]
-        ax.imshow(m, cmap="RdYlGn_r", vmin=0, vmax=1, origin="lower")
-        ax.set_xticks(range(13)); ax.set_xticklabels(ang, fontsize=7)
-        ax.set_yticks(range(13)); ax.set_yticklabels(ang, fontsize=7)
-        ax.set_xlabel("left arm angle (deg)"); ax.set_ylabel("right arm angle (deg)")
-        ax.set_title(f"{key}: {int(m.sum())} / 169 colliding (red)")
-    fig.tight_layout()
-    fig.savefig(os.path.join(IMG_DIR, "arm_vs_arm_collision_matrix.png"))
-    plt.close(fig)
-
-
 if __name__ == "__main__":
-    for c in (V1, V2):
-        parts = full_assembly(c)
-        export_step(c, parts, f"{c.name}_assembly.step")
-        print("STEP", c.name, len(parts), "solids")
-    # individual V2 parts
-    p2 = full_assembly(V2)
-    canon = arm_canonical(V2)
-    singles = {"B1_base_plate": p2["B1_base_plate"], "B2_ballast_box": p2["B2_ballast_box"],
-               "C1_column_tube": p2["C1_column"], "C1_top_cap": p2["C1_top_cap"], "C1_flange": p2["C1_flange"],
-               "C1_gusset": p2["C1_gusset_1"], "C2_service_door": p2["C2_service_door"],
-               "C3_panel_box": p2["C3_panel_box"], "T1_head_plate": p2["T1_head_plate_front"],
+    import shutil
+    for d in (STEP_DIR, DXF_DIR, IMG_DIR):
+        shutil.rmtree(d, ignore_errors=True)
+        os.makedirs(d)
+    c = C
+    parts = full_assembly(c)
+    export_step(c, parts, "UVC_stand_assembly.step")
+    print("STEP assembly", len(parts), "solids")
+    canon = arm_canonical(c)
+    pin, body = part_plunger(c, 1)
+    singles = {"B1_base_plate": parts["B1_base_plate"], "B2_ballast_box": parts["B2_ballast_box"],
+               "C1_column_tube": parts["C1_column"], "C1_top_cap": parts["C1_top_cap"], "C1_flange": parts["C1_flange"],
+               "C1_gusset": parts["C1_gusset_1"], "C2_service_door": parts["C2_service_door"],
+               "C3_panel_box": parts["C3_panel_box"], "push_handle": parts["handle"],
+               "T1_head_plate": parts["T1_head_plate_front"],
                "A1_arm_channel": canon["channel"], "A2_end_caps": canon["caps"], "H1_bracket": canon["bracket"],
-               "H2_index_disc": canon["disc"]}
-    for k, s in singles.items():
-        cq.exporters.export(cq.Workplane().add(s), os.path.join(STEP_DIR, "V2_parts", f"{k}.step"))
-    print("DXF", dxf_parts(V2))
+               "H2_index_disc": canon["disc"], "H4_index_plunger_envelope": pin.fuse(body)}
+    os.makedirs(os.path.join(STEP_DIR, "parts"))
+    for k, s_ in singles.items():
+        cq.exporters.export(cq.Workplane().add(s_), os.path.join(STEP_DIR, "parts", f"{k}.step"))
+    print("DXF", dxf_parts(c))
 
-    res = json.load(open(os.path.join(OUT, "results", "checks_V1_V2.json")))
-    matrix_plot(res)
-    render(full_assembly(V2), "V2_iso.png", title="V2 (corrected) - arms at 90, 45, 180, 0 deg")
-    render(full_assembly(V1), "V1_iso.png", title="V1 (as drawn) - same pose")
-    for c in (V1, V2):
-        z = c.z_axis
-        render(full_assembly(c, {("F", 1): 90, ("F", -1): 90, ("B", 1): 0, ("B", -1): 0}),
-               f"{c.name}_hinge_front_both90.png", view=(0, -1, 0), focal=(0, 0, z - 40), height=420,
-               title=f"{c.name}: both front arms at 90 deg (front view)", size=(1100, 800))
-        render(full_assembly(c, {("F", 1): 0, ("F", -1): 0, ("B", 1): 0, ("B", -1): 0}), f"{c.name}_parked.png",
-               view=(-0.6, -1, 0.35), title=f"{c.name}: all arms parked (0 deg)")
-        render(full_assembly(c, {("F", 1): 45, ("F", -1): 0, ("B", 1): 0, ("B", -1): 0}), f"{c.name}_hinge_side.png",
-               view=(1, -0.25, 0.25), focal=(c.hinge_dx, -40, z - 30), height=330,
-               title=f"{c.name}: right side of hinge zone (plunger knob / nut behind T1)", size=(1000, 800))
+    z = c.z_axis
+    render(full_assembly(c), "iso_working.png", title="Arms at 90, 45, 180, 0 deg")
+    render(full_assembly(c, {k: 0 for k in (("F", 1), ("F", -1), ("B", 1), ("B", -1))}), "parked.png",
+           view=(-0.6, -1, 0.35), title="All arms parked (0 deg) - transport position")
+    render(full_assembly(c, {("F", 1): 90, ("F", -1): 90, ("B", 1): 0, ("B", -1): 0}), "hinge_front_both90.png",
+           view=(0, -1, 0), focal=(0, 0, z - 40), height=440, title="Front view: both front arms at 90 deg", size=(1100, 800))
+    render(full_assembly(c, {("F", 1): 45, ("F", -1): 0, ("B", 1): 0, ("B", -1): 0}), "hinge_side.png",
+           view=(1, -0.25, 0.25), focal=(c.hinge_dx, -40, z - 30), height=330,
+           title="Right hinge from the side: index plunger knob and hinge nut behind T1", size=(1000, 800))
+    render(full_assembly(c, {k: 0 for k in (("F", 1), ("F", -1), ("B", 1), ("B", -1))}), "side_panel_handle.png",
+           view=(-1, -0.15, 0.2), title="Left side: control panel / right side: push handle")
     print("renders done")

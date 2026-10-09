@@ -1,0 +1,352 @@
+{
+ "config": "UVC_stand",
+ "checks": [
+  {
+   "code": "T1-1",
+   "title": "T1 hinge hole spacing / edge distance",
+   "ok": true,
+   "detail": "plate 250 wide x 160 high, holes at x=±100, edge distance 25; overhang beyond column face 45 each side"
+  },
+  {
+   "code": "T1-2",
+   "title": "Plunger hole edge distance in T1",
+   "ok": true,
+   "detail": "plunger at x=±100.0, z=1100.0; edge distance 25.0"
+  },
+  {
+   "code": "H4-1",
+   "title": "Index plunger knob reachable from the side (≥5 mm from column)",
+   "ok": true,
+   "detail": "knob/body overlap with column wall = 0 mm³; gap knob to column side = 7.5 mm"
+  },
+  {
+   "code": "H3-1",
+   "title": "Hinge bolt & nut clear of column wall",
+   "ok": true,
+   "detail": "overlap 0 mm³ (ISO 7380 M10x30 + nyloc nut); nut x from column side = 10.2 mm; shank reaches y=-47 (column face y=-60)"
+  },
+  {
+   "code": "H3-2",
+   "title": "Bolt head under lamp clearance",
+   "ok": true,
+   "detail": "gap bolt head to lamp tube = 3.5 mm"
+  },
+  {
+   "code": "C1-1",
+   "title": "Gusset horizontal leg fits on flange",
+   "ok": true,
+   "detail": "gusset leg 50 vs flange margin x 50 / y 50"
+  },
+  {
+   "code": "C1-2",
+   "title": "Gussets below B2 cover",
+   "ok": true,
+   "detail": "overlap 0 mm³ (gusset top z=172, B2 cover z=184)"
+  },
+  {
+   "code": "C1-3",
+   "title": "M10 flange bolts: socket-wrench room (Ø28)",
+   "ok": true,
+   "detail": "wrench envelope overlap with column weld/gussets = 0 mm³; bolt centre to column wall = 25 mm"
+  },
+  {
+   "code": "C3-1",
+   "title": "Control panel clear of T1 head plate",
+   "ok": true,
+   "detail": "overlap 0 mm³ (panel top 990, T1 bottom 1030)"
+  },
+  {
+   "code": "SW-1",
+   "title": "Arms 0-180° clear of column, T1, panel, handle, base",
+   "ok": true,
+   "detail": "no contact at any of the 13 positions, both sides"
+  },
+  {
+   "code": "H4-2",
+   "title": "Plunger pin fully engages index hole at all 13 positions",
+   "ok": true,
+   "detail": "pin passes cleanly through disc at 0,15,…,180°"
+  },
+  {
+   "code": "SW-2",
+   "title": "Left & right arm on same face never collide (13×13 positions)",
+   "ok": true,
+   "detail": "0 of 169 combinations collide; stub reach from axis 65.0 vs half hinge spacing 100"
+  },
+  {
+   "code": "H2-1",
+   "title": "Web between index holes ≥ disc thickness (laser cut)",
+   "ok": true,
+   "detail": "web 6.9 mm vs plate 5 mm"
+  },
+  {
+   "code": "A1-1",
+   "title": "Parked arm (0°) tip ≥ 50 mm above B2 box",
+   "ok": true,
+   "detail": "tip z=240, B2 top z=186, gap 54 mm"
+  },
+  {
+   "code": "DIM-1",
+   "title": "Hinge axis height ≈ 1150",
+   "ok": true,
+   "detail": "z axis = 1150"
+  },
+  {
+   "code": "C2-1",
+   "title": "Service door & cable holes not hidden behind parked arms",
+   "ok": true,
+   "detail": "parked arm inner edge x=±66; door edge ±60; cable hole edge ±53"
+  },
+  {
+   "code": "DIM-2",
+   "title": "Overall height / span",
+   "ok": true,
+   "detail": "height with arms up = 2060, span with arms horizontal = 2020 (info only)"
+  },
+  {
+   "code": "M-1",
+   "title": "Total mass ≥ 18 kg (else add B4 counterweight)",
+   "ok": true,
+   "detail": "structure 27.2 kg + arms 4×1.59 kg + bought-in 4.9 kg = 38.4 kg"
+  },
+  {
+   "code": "ST-1",
+   "title": "Static tip-over margin, 2 arms horizontal on one side",
+   "ok": true,
+   "detail": "arm CG 536 mm from column axis; overturning 1.00 kg·m vs resisting 7.75 kg·m → factor 7.7"
+  },
+  {
+   "code": "ST-2",
+   "title": "Side push at top that tips it (arms vertical)",
+   "ok": true,
+   "detail": "≈ 4.1 kgf at 2060 mm – move only with arms parked (info)"
+  }
+ ],
+ "arm_arm_matrix": {
+  "angles": [
+   0,
+   15,
+   30,
+   45,
+   60,
+   75,
+   90,
+   105,
+   120,
+   135,
+   150,
+   165,
+   180
+  ],
+  "rows_right": [
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ]
+  ]
+ },
+ "mass": {
+  "static_metal": 27.17,
+  "arm_each": 1.59,
+  "bought_in": {
+   "casters 4x": 1.4,
+   "ballasts 4x": 1.4,
+   "timer/PIR/switches/E-stop/LED": 0.7,
+   "cables": 0.8,
+   "plunger/fasteners": 0.6
+  },
+  "total": 38.41
+ },
+ "n_fail": 0
+}
