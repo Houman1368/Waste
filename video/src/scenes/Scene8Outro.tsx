@@ -101,7 +101,7 @@ export const Scene8Outro: React.FC<{ logoFile?: string | null }> = ({ logoFile }
             <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: v ? 48 : 36, opacity: endP(112), transform: `scale(${0.9 + 0.1 * endP(112)})`, transformOrigin: "right center" }}>
               {/* لوگو روی کارت سفید تا با هر رنگی خوانا باشد */}
               <div style={{ background: "#fff", borderRadius: 28, padding: v ? "24px 36px" : "20px 32px" }}>
-                <Img src={staticFile(logoFile)} style={{ height: v ? 150 : 120, width: "auto", display: "block" }} />
+                <Img src={staticFile(logoFile)} style={{ height: v ? 300 : 230, width: "auto", display: "block" }} />
               </div>
             </div>
           ) : null}
