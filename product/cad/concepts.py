@@ -54,6 +54,13 @@ def front_fillet(wp, r):
         return wp
 
 
+def front_fillet_x(wp, r):
+    try:
+        return wp.faces(">X").edges().fillet(r)
+    except Exception:
+        return wp
+
+
 def compound(solids):
     return cq.Workplane("XY").add(cq.Compound.makeCompound([s.val() for s in solids]))
 
@@ -188,6 +195,12 @@ def concept_c():
     body = body.cut(rbox(272, 290, 60, 24, y=305, z=30))
     body = body.cut(box(-150, 150, -5, 136, 6, D + 5))
     body = body.cut(rbox(240, 10, 8, 4.9, y=500, z=D - 5))
+    # جای انگشت دور دستگیره: گودی مخروطی در دیوارهٔ کناری
+    KY, KZ = 70.0, 42.0
+    pocket = cq.Workplane("XY").add(
+        cq.Solid.makeCone(36, 29, 14, cq.Vector(W / 2 + 0.5, KY, KZ), cq.Vector(-1, 0, 0))
+    )
+    body = body.cut(pocket)
     parts["body"] = (body, WHITE)
     parts["film"] = (box(-132, 132, 162, 448, 30, 30.8), FILM)
     parts["flies"] = (flies(-115, 115, 175, 435, 30.8, 12, 5), FLY)
@@ -198,15 +211,30 @@ def concept_c():
     cas = front_fillet(cas, 10)
     parts["cassette"] = (cas, WHITE)
     parts["cassette_line"] = (box(-149, 149, 136, 139, D - 14, D - 4), GREEN)
-    # دستگیرهٔ هم‌سطح در کنار
-    dial = cq.Workplane("YZ", origin=(W / 2 - 3, 70, 40)).circle(22).extrude(4.5)
-    dial = dial.cut(cq.Workplane("YZ", origin=(W / 2 + 0.5, 70, 40)).rect(30, 6).extrude(2))
+    # دستگیرهٔ چرخشی: Ø۵۲ با شیارهای انگشت + دستهٔ کوچک برای چرخاندن با یک انگشت
+    x0 = W / 2 - 13.5
+    dial = cq.Workplane("YZ", origin=(x0, KY, KZ)).circle(26).extrude(19)
+    dial = front_fillet_x(dial, 3)
+    for i in range(14):
+        a = 2 * math.pi * i / 14
+        dial = dial.cut(
+            cq.Workplane("YZ", origin=(x0 + 4, KY + 26.5 * math.cos(a), KZ + 26.5 * math.sin(a))).circle(3.6).extrude(16)
+        )
+    crank = cq.Workplane("YZ", origin=(x0 + 19, KY + 15, KZ)).circle(6).extrude(14)
+    try:
+        crank = crank.faces(">X").edges().fillet(2.5)
+    except Exception:
+        pass
+    dial = dial.union(crank)
+    # فلش جهت چرخش روی صفحهٔ دستگیره
+    dial = dial.cut(cq.Workplane("YZ", origin=(x0 + 18, KY - 8, KZ - 8)).rect(3, 14).extrude(1.5))
     parts["dial"] = (dial, GREEN)
     parts["status_led"] = (cyl_z(4.5, 140, 500, D - 3, D + 0.5), OK)
     parts["supply_roll"] = (cyl_x(24, 264, 488, 30), ROLL)
     parts["takeup_roll"] = (cyl_x(24, 264, 70, 34), ROLL)
     manifest = {
         "title": "C — طرح اصلاح‌شده",
+        "focus": {"target": [W / 2, 75, 42], "dir": [1, 0.35, 0.7], "dist": 520},
         "size": [W, H, D],
         "decals": [{"image": "assets/logo.jpg", "x": 0, "y": 72, "z": D + 0.6, "w": 120, "h": 68}],
         "lights": [{"color": "#7F77DD", "intensity": 1.2, "distance": 300, "pos": [0, 420, 95]}],

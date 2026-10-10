@@ -16,7 +16,7 @@ const server = createServer(async (req, res) => {
 }).listen(0);
 const port = server.address().port;
 const keys = process.argv.slice(2).length ? process.argv.slice(2) : ["a", "b", "c"];
-const views = ["hero", "front", "inside"];
+const views = (process.env.VIEWS || "hero,front,inside").split(",");
 await mkdir(path.join(root, "render", "out", "concepts"), { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
 const page = await browser.newPage({ viewport: { width: 1200, height: 1500 } });

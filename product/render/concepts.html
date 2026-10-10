@@ -46,11 +46,16 @@ const [sw, sh, sd] = M.size;
 const target = new THREE.Vector3(0, sh / 2, sd / 2);
 const fov = 28;
 const dist = Math.max(sh * 1.15, sw * 1.15 * H / W) / (2 * Math.tan(fov * Math.PI / 360)) * 1.12;
-const dirs = { hero: [0.5, 0.18, 1], front: [0, 0, 1], inside: [0.5, 0.18, 1], side: [1, 0.1, 0.35] };
+const dirs = { dial: [1, 0, 0], hero: [0.5, 0.18, 1], front: [0, 0, 1], inside: [0.5, 0.18, 1], side: [1, 0.1, 0.35] };
 const d = new THREE.Vector3(...dirs[view]).normalize();
 const cam = new THREE.PerspectiveCamera(fov, W / H, 1, 20000);
 cam.position.copy(target).addScaledVector(d, dist);
 cam.lookAt(target);
+if (view === 'dial' && M.focus) {
+  const t = new THREE.Vector3(...M.focus.target);
+  cam.position.copy(t).addScaledVector(new THREE.Vector3(...M.focus.dir).normalize(), M.focus.dist);
+  cam.lookAt(t);
+}
 
 const loader = new STLLoader();
 const tex = new THREE.TextureLoader();
