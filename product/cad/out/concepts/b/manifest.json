@@ -1,5 +1,18 @@
 {
  "title": "B — ستون باریک",
+ "focus": {
+  "target": [
+   100,
+   110,
+   42
+  ],
+  "dir": [
+   1,
+   0.35,
+   0.7
+  ],
+  "dist": 520
+ },
  "size": [
   200,
   900,
@@ -98,6 +111,11 @@
    "color": "#1D9E75",
    "emissive": "#1D9E75",
    "emissiveIntensity": 1.4
+  },
+  {
+   "name": "dial",
+   "color": "#0F6E56",
+   "roughness": 0.4
   },
   {
    "name": "supply_roll",

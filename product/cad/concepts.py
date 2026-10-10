@@ -98,6 +98,33 @@ def flies(x0, x1, y0, y1, z, n, seed):
     return compound(out)
 
 
+def knob(x_side, ky, kz, r=26.0, length=19.0, inset=13.5):
+    """دستگیرهٔ چرخشی سمت راست: شیارهای انگشت + دستهٔ کوچک (مثل چرخ‌گوشت) + فلش جهت"""
+    x0 = x_side - inset
+    dial = cq.Workplane("YZ", origin=(x0, ky, kz)).circle(r).extrude(length)
+    dial = front_fillet_x(dial, 3)
+    for i in range(14):
+        a = 2 * math.pi * i / 14
+        dial = dial.cut(
+            cq.Workplane("YZ", origin=(x0 + 4, ky + (r + 0.5) * math.cos(a), kz + (r + 0.5) * math.sin(a)))
+            .circle(3.6)
+            .extrude(length)
+        )
+    crank = cq.Workplane("YZ", origin=(x0 + length, ky + r * 0.58, kz)).circle(6).extrude(14)
+    try:
+        crank = crank.faces(">X").edges().fillet(2.5)
+    except Exception:
+        pass
+    dial = dial.union(crank)
+    dial = dial.cut(cq.Workplane("YZ", origin=(x0 + length - 1, ky - 8, kz - 8)).rect(3, 14).extrude(1.5))
+    return dial
+
+
+def finger_pocket(x_side, ky, kz, r_out=36.0, r_in=29.0, depth=14.0):
+    """گودی مخروطی دور دستگیره برای جای انگشت"""
+    return cq.Workplane("XY").add(cq.Solid.makeCone(r_out, r_in, depth, cq.Vector(x_side + 0.5, ky, kz), cq.Vector(-1, 0, 0)))
+
+
 # ---------------- A: چراغ دیواری ----------------
 def concept_a():
     W, H = 360, 540
@@ -131,11 +158,14 @@ def concept_a():
     ring = rbox(360, 520, 3, 95, y=H / 2, z=62).cut(rbox(344, 504, 3, 88, y=H / 2, z=62))
     parts["led_ring"] = (ring, UV)
     parts["status_led"] = (cyl_z(4.5, 150, 40, ZF - 18, ZF - 0.3), OK)
+    # دستگیره: هم‌محور با قرقرهٔ جمع‌کننده، زیر لبهٔ پنل؛ از لبهٔ پنل بیرون می‌زند تا دست به آن برسد
+    parts["dial"] = (knob(W / 2, 62, 27, r=24, length=34, inset=6), GREEN)
     # رول‌ها (فقط در نمای برش دیده می‌شوند)
     parts["supply_roll"] = (cyl_x(24, 280, 470, 26), ROLL)
     parts["takeup_roll"] = (cyl_x(24, 280, 62, 26), ROLL)
     manifest = {
         "title": "A — چراغ دیواری",
+        "focus": {"target": [200, 80, 40], "dir": [1, 0.35, 0.7], "dist": 560},
         "size": [W, H, 100],
         "decals": [{"image": "assets/logo.jpg", "x": 0, "y": 75, "z": ZF + 0.6, "w": 120, "h": 68}],
         "lights": [
@@ -159,6 +189,7 @@ def concept_b():
     ch = rbox(132, 620, 60, 30, y=455, z=34)
     body = body.cut(ch)
     body = body.cut(box(-80, 80, -5, 138, 6, D + 5))
+    body = body.cut(finger_pocket(W / 2, 108, 42, r_out=33, r_in=27, depth=13))
     parts["body"] = (body, WHITE)
     parts["film"] = (box(-62, 62, 150, 760, 34, 34.8), FILM)
     parts["flies"] = (flies(-50, 50, 170, 740, 34.8, 12, 11), FLY)
@@ -170,10 +201,12 @@ def concept_b():
     parts["cassette"] = (cas, WHITE)
     parts["cassette_line"] = (box(-79, 79, 138, 141, D - 12, D - 3), GREEN)
     parts["status_led"] = (cyl_z(4.5, 0, 830, D - 2, D + 0.5), OK)
+    parts["dial"] = (knob(W / 2, 108, 42, r=24), GREEN)
     parts["supply_roll"] = (cyl_x(24, 124, 795, 30), ROLL)
-    parts["takeup_roll"] = (cyl_x(24, 124, 75, 34), ROLL)
+    parts["takeup_roll"] = (cyl_x(24, 124, 100, 34), ROLL)
     manifest = {
         "title": "B — ستون باریک",
+        "focus": {"target": [100, 110, 42], "dir": [1, 0.35, 0.7], "dist": 520},
         "size": [W, H, D],
         "decals": [{"image": "assets/logo.jpg", "x": 0, "y": 72, "z": D + 0.6, "w": 104, "h": 59}],
         "lights": [
@@ -197,10 +230,7 @@ def concept_c():
     body = body.cut(rbox(240, 10, 8, 4.9, y=500, z=D - 5))
     # جای انگشت دور دستگیره: گودی مخروطی در دیوارهٔ کناری
     KY, KZ = 70.0, 42.0
-    pocket = cq.Workplane("XY").add(
-        cq.Solid.makeCone(36, 29, 14, cq.Vector(W / 2 + 0.5, KY, KZ), cq.Vector(-1, 0, 0))
-    )
-    body = body.cut(pocket)
+    body = body.cut(finger_pocket(W / 2, KY, KZ))
     parts["body"] = (body, WHITE)
     parts["film"] = (box(-132, 132, 162, 448, 30, 30.8), FILM)
     parts["flies"] = (flies(-115, 115, 175, 435, 30.8, 12, 5), FLY)
@@ -212,22 +242,7 @@ def concept_c():
     parts["cassette"] = (cas, WHITE)
     parts["cassette_line"] = (box(-149, 149, 136, 139, D - 14, D - 4), GREEN)
     # دستگیرهٔ چرخشی: Ø۵۲ با شیارهای انگشت + دستهٔ کوچک برای چرخاندن با یک انگشت
-    x0 = W / 2 - 13.5
-    dial = cq.Workplane("YZ", origin=(x0, KY, KZ)).circle(26).extrude(19)
-    dial = front_fillet_x(dial, 3)
-    for i in range(14):
-        a = 2 * math.pi * i / 14
-        dial = dial.cut(
-            cq.Workplane("YZ", origin=(x0 + 4, KY + 26.5 * math.cos(a), KZ + 26.5 * math.sin(a))).circle(3.6).extrude(16)
-        )
-    crank = cq.Workplane("YZ", origin=(x0 + 19, KY + 15, KZ)).circle(6).extrude(14)
-    try:
-        crank = crank.faces(">X").edges().fillet(2.5)
-    except Exception:
-        pass
-    dial = dial.union(crank)
-    # فلش جهت چرخش روی صفحهٔ دستگیره
-    dial = dial.cut(cq.Workplane("YZ", origin=(x0 + 18, KY - 8, KZ - 8)).rect(3, 14).extrude(1.5))
+    dial = knob(W / 2, KY, KZ)
     parts["dial"] = (dial, GREEN)
     parts["status_led"] = (cyl_z(4.5, 140, 500, D - 3, D + 0.5), OK)
     parts["supply_roll"] = (cyl_x(24, 264, 488, 30), ROLL)
