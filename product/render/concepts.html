@@ -1,0 +1,84 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#F2F5F6;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const q = new URLSearchParams(location.search);
+const key = q.get('c') || 'a';
+const view = q.get('view') || 'hero';
+const W = +(q.get('w') || 1200), H = +(q.get('h') || 1500);
+const dir = `../cad/out/concepts/${key}/`;
+const M = await (await fetch(dir + 'manifest.json')).json();
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xF2F5F6);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.8;
+
+const wall = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshStandardMaterial({ color: 0xEEF2F3, roughness: 0.95 }));
+wall.position.set(0, 400, -0.3); wall.receiveShadow = true; scene.add(wall);
+
+const key1 = new THREE.DirectionalLight(0xffffff, 1.5);
+key1.position.set(700, 1400, 1200); key1.castShadow = true;
+key1.shadow.mapSize.set(2048, 2048);
+Object.assign(key1.shadow.camera, { left: -800, right: 800, top: 1400, bottom: -600, near: 10, far: 4000 });
+key1.shadow.radius = 6;
+scene.add(key1);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xdde4e8, 0.5));
+
+for (const L of M.lights || []) {
+  const p = new THREE.PointLight(L.color, L.intensity * 3, L.distance, 0.6);
+  p.position.set(...L.pos); scene.add(p);
+}
+
+const [sw, sh, sd] = M.size;
+const target = new THREE.Vector3(0, sh / 2, sd / 2);
+const fov = 28;
+const dist = Math.max(sh * 1.15, sw * 1.15 * H / W) / (2 * Math.tan(fov * Math.PI / 360)) * 1.12;
+const dirs = { hero: [0.5, 0.18, 1], front: [0, 0, 1], inside: [0.5, 0.18, 1], side: [1, 0.1, 0.35] };
+const d = new THREE.Vector3(...dirs[view]).normalize();
+const cam = new THREE.PerspectiveCamera(fov, W / H, 1, 20000);
+cam.position.copy(target).addScaledVector(d, dist);
+cam.lookAt(target);
+
+const loader = new STLLoader();
+const tex = new THREE.TextureLoader();
+const inside = view === 'inside';
+const jobs = M.parts.filter(p => inside || !(M.hideNormally || []).includes(p.name)).map(p => new Promise(res => {
+  loader.load(dir + p.name + '.stl', geo => {
+    geo.computeVertexNormals();
+    const ghost = inside && (M.ghost || []).includes(p.name);
+    const mat = new THREE.MeshStandardMaterial({
+      color: p.color, roughness: p.roughness ?? 0.4, metalness: p.metalness ?? 0,
+      emissive: p.emissive || 0x000000, emissiveIntensity: p.emissiveIntensity ?? 0,
+      transparent: ghost, opacity: ghost ? 0.16 : 1, depthWrite: !ghost,
+    });
+    const m = new THREE.Mesh(geo, mat);
+    m.castShadow = !ghost && !p.emissive; m.receiveShadow = true;
+    scene.add(m);
+    if (ghost) scene.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), new THREE.LineBasicMaterial({ color: 0x8FA3AA, transparent: true, opacity: 0.5 })));
+    res();
+  });
+}));
+for (const dc of (inside ? [] : M.decals || [])) {
+  jobs.push(new Promise(res => tex.load(dc.image, t => {
+    t.colorSpace = THREE.SRGBColorSpace;
+    const pl = new THREE.Mesh(new THREE.PlaneGeometry(dc.w, dc.h), new THREE.MeshStandardMaterial({ map: t, roughness: 0.5 }));
+    pl.position.set(dc.x, dc.y, dc.z); scene.add(pl); res();
+  })));
+}
+await Promise.all(jobs);
+renderer.render(scene, cam);
+window.__done = true;
+</script></body></html>

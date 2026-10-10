@@ -1,0 +1,113 @@
+{
+ "title": "B — ستون باریک",
+ "size": [
+  200,
+  900,
+  84
+ ],
+ "decals": [
+  {
+   "image": "assets/logo.jpg",
+   "x": 0,
+   "y": 72,
+   "z": 84.6,
+   "w": 104,
+   "h": 59
+  }
+ ],
+ "lights": [
+  {
+   "color": "#7F77DD",
+   "intensity": 1.4,
+   "distance": 300,
+   "pos": [
+    0,
+    300,
+    95
+   ]
+  },
+  {
+   "color": "#7F77DD",
+   "intensity": 1.4,
+   "distance": 300,
+   "pos": [
+    0,
+    610,
+    95
+   ]
+  }
+ ],
+ "ghost": [
+  "body",
+  "slats",
+  "cassette"
+ ],
+ "hideNormally": [
+  "supply_roll",
+  "takeup_roll"
+ ],
+ "parts": [
+  {
+   "name": "body",
+   "color": "#FFFFFF",
+   "roughness": 0.32
+  },
+  {
+   "name": "film",
+   "color": "#F6E2B4",
+   "roughness": 0.3
+  },
+  {
+   "name": "flies",
+   "color": "#1F2A30",
+   "roughness": 0.4
+  },
+  {
+   "name": "slats",
+   "color": "#F4F6F7",
+   "roughness": 0.35,
+   "emissive": "#3A3480",
+   "emissiveIntensity": 0.55
+  },
+  {
+   "name": "uv_left",
+   "color": "#4A42C0",
+   "emissive": "#6A61E0",
+   "emissiveIntensity": 1.1,
+   "roughness": 0.2
+  },
+  {
+   "name": "uv_right",
+   "color": "#4A42C0",
+   "emissive": "#6A61E0",
+   "emissiveIntensity": 1.1,
+   "roughness": 0.2
+  },
+  {
+   "name": "cassette",
+   "color": "#FFFFFF",
+   "roughness": 0.32
+  },
+  {
+   "name": "cassette_line",
+   "color": "#0F6E56",
+   "roughness": 0.4
+  },
+  {
+   "name": "status_led",
+   "color": "#1D9E75",
+   "emissive": "#1D9E75",
+   "emissiveIntensity": 1.4
+  },
+  {
+   "name": "supply_roll",
+   "color": "#F2D79E",
+   "roughness": 0.3
+  },
+  {
+   "name": "takeup_roll",
+   "color": "#F2D79E",
+   "roughness": 0.3
+  }
+ ]
+}

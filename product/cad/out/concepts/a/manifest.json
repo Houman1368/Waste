@@ -1,0 +1,131 @@
+{
+ "title": "A — چراغ دیواری",
+ "size": [
+  360,
+  540,
+  100
+ ],
+ "decals": [
+  {
+   "image": "assets/logo.jpg",
+   "x": 0,
+   "y": 75,
+   "z": 98.6,
+   "w": 120,
+   "h": 68
+  }
+ ],
+ "lights": [
+  {
+   "color": "#7F77DD",
+   "intensity": 18,
+   "distance": 600,
+   "pos": [
+    0,
+    575,
+    40
+   ]
+  },
+  {
+   "color": "#7F77DD",
+   "intensity": 18,
+   "distance": 600,
+   "pos": [
+    0,
+    -35,
+    40
+   ]
+  },
+  {
+   "color": "#7F77DD",
+   "intensity": 14,
+   "distance": 560,
+   "pos": [
+    -225,
+    270,
+    40
+   ]
+  },
+  {
+   "color": "#7F77DD",
+   "intensity": 14,
+   "distance": 560,
+   "pos": [
+    225,
+    270,
+    40
+   ]
+  }
+ ],
+ "ghost": [
+  "shield",
+  "rim",
+  "led_ring"
+ ],
+ "hideNormally": [
+  "supply_roll",
+  "takeup_roll"
+ ],
+ "parts": [
+  {
+   "name": "base",
+   "color": "#E6ECEF",
+   "roughness": 0.45
+  },
+  {
+   "name": "film",
+   "color": "#F6E2B4",
+   "roughness": 0.3
+  },
+  {
+   "name": "flies",
+   "color": "#1F2A30",
+   "roughness": 0.4
+  },
+  {
+   "name": "cassette",
+   "color": "#FFFFFF",
+   "roughness": 0.32
+  },
+  {
+   "name": "shield",
+   "color": "#FFFFFF",
+   "roughness": 0.32
+  },
+  {
+   "name": "rim",
+   "color": "#4A42C0",
+   "emissive": "#6A61E0",
+   "emissiveIntensity": 1.1,
+   "roughness": 0.2
+  },
+  {
+   "name": "standoffs",
+   "color": "#E6ECEF",
+   "roughness": 0.45
+  },
+  {
+   "name": "led_ring",
+   "color": "#4A42C0",
+   "emissive": "#6A61E0",
+   "emissiveIntensity": 1.1,
+   "roughness": 0.2
+  },
+  {
+   "name": "status_led",
+   "color": "#1D9E75",
+   "emissive": "#1D9E75",
+   "emissiveIntensity": 1.4
+  },
+  {
+   "name": "supply_roll",
+   "color": "#F2D79E",
+   "roughness": 0.3
+  },
+  {
+   "name": "takeup_roll",
+   "color": "#F2D79E",
+   "roughness": 0.3
+  }
+ ]
+}
