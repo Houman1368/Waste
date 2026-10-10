@@ -1,5 +1,6 @@
 import React from "react";
 import { CalculateMetadataFunction, Composition, staticFile } from "remotion";
+import { LOGO_CANDIDATES } from "./config";
 import { FPS, TOTAL_FRAMES } from "./theme";
 import { Video, VideoProps } from "./Video";
 
@@ -13,11 +14,21 @@ const exists = async (file: string) => {
   }
 };
 
+const findLogo = async () => {
+  for (const f of LOGO_CANDIDATES) if (await exists(f)) return f;
+  return null;
+};
+
 const calculateMetadata: CalculateMetadataFunction<VideoProps> = async ({ props }) => ({
-  props: { ...props, hasVoiceover: await exists("voiceover.mp3"), hasMusic: await exists("music.mp3") },
+  props: {
+    ...props,
+    hasVoiceover: await exists("voiceover.mp3"),
+    hasMusic: await exists("music.mp3"),
+    logoFile: await findLogo(),
+  },
 });
 
-const defaultProps: VideoProps = { hasVoiceover: false, hasMusic: false };
+const defaultProps: VideoProps = { hasVoiceover: false, hasMusic: false, logoFile: null };
 
 export const RemotionRoot: React.FC = () => (
   <>

@@ -10,9 +10,9 @@ import { Scene7Cycle } from "./scenes/Scene7Cycle";
 import { Scene8Outro } from "./scenes/Scene8Outro";
 import { C, SCENES } from "./theme";
 
-export type VideoProps = { hasVoiceover: boolean; hasMusic: boolean };
+export type VideoProps = { hasVoiceover: boolean; hasMusic: boolean; logoFile: string | null };
 
-const LIST: { key: keyof typeof SCENES; C: React.FC }[] = [
+const LIST: { key: keyof typeof SCENES; C: React.FC<{ logoFile: string | null }> }[] = [
   { key: "s1", C: Scene1Problem },
   { key: "s2", C: Scene2Intro },
   { key: "s3", C: Scene3UvAttract },
@@ -23,11 +23,11 @@ const LIST: { key: keyof typeof SCENES; C: React.FC }[] = [
   { key: "s8", C: Scene8Outro },
 ];
 
-export const Video: React.FC<VideoProps> = ({ hasVoiceover, hasMusic }) => (
+export const Video: React.FC<VideoProps> = ({ hasVoiceover, hasMusic, logoFile }) => (
   <AbsoluteFill style={{ background: C.bg }}>
     {LIST.map(({ key, C: Scene }) => (
       <Sequence key={key} name={key} from={SCENES[key].from} durationInFrames={SCENES[key].dur} premountFor={30}>
-        <Scene />
+        <Scene logoFile={logoFile} />
       </Sequence>
     ))}
     {hasVoiceover ? <Html5Audio src={staticFile("voiceover.mp3")} /> : null}

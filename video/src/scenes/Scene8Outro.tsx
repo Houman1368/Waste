@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { PlacedDevice } from "../components/Device";
 import { fontFamily } from "../components/RtlText";
 import { COMPANY_NAME, CONTACT, PRODUCT_NAME } from "../config";
@@ -38,7 +38,7 @@ const Icon: React.FC<{ kind: number; size: number }> = ({ kind, size }) => (
 
 const LABELS = ["بی‌صدا", "بدون بو", "بدون تماس", "گزارش‌دهی"];
 
-export const Scene8Outro: React.FC = () => {
+export const Scene8Outro: React.FC<{ logoFile?: string | null }> = ({ logoFile }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const { v, W, H, font } = useLayout();
@@ -97,6 +97,14 @@ export const Scene8Outro: React.FC = () => {
       {/* متن پایانی روی زمینهٔ برند */}
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", padding: v ? 56 : 80 }}>
         <div dir="rtl" style={{ fontFamily, color: "#fff", textAlign: "right", maxWidth: W - (v ? 112 : 160) }}>
+          {logoFile ? (
+            <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: v ? 48 : 36, opacity: endP(112), transform: `scale(${0.9 + 0.1 * endP(112)})`, transformOrigin: "right center" }}>
+              {/* لوگو روی کارت سفید تا با هر رنگی خوانا باشد */}
+              <div style={{ background: "#fff", borderRadius: 28, padding: v ? "24px 36px" : "20px 32px" }}>
+                <Img src={staticFile(logoFile)} style={{ height: v ? 150 : 120, width: "auto", display: "block" }} />
+              </div>
+            </div>
+          ) : null}
           <div style={{ fontSize: v ? 110 : 110, fontWeight: 700, lineHeight: 1.3, opacity: endP(125), transform: `translateY(${(1 - endP(125)) * 30}px)` }}>{PRODUCT_NAME}</div>
           <div style={{ fontSize: v ? 60 : 52, lineHeight: 1.5, marginTop: 20, opacity: endP(145) }}>محصول {COMPANY_NAME}</div>
           <div style={{ fontSize: v ? 60 : 52, lineHeight: 1.5, marginTop: 10, opacity: endP(160) * 0.9 }}>{CONTACT}</div>
