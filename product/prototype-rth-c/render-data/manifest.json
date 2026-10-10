@@ -1,0 +1,266 @@
+{
+ "title": "RTH-C prototype",
+ "size": [
+  552,
+  440.0,
+  100.0
+ ],
+ "lights": [
+  {
+   "color": "#7F77DD",
+   "intensity": 10,
+   "distance": 600,
+   "pos": [
+    0,
+    392.0,
+    121.0
+   ]
+  }
+ ],
+ "ghost": [
+  "side_upper_R",
+  "side_upper_L",
+  "head_1",
+  "head_2",
+  "head_3",
+  "slats_L",
+  "slats_R",
+  "cassette_L",
+  "cassette_R"
+ ],
+ "hideNormally": [],
+ "parts": [
+  {
+   "name": "side_upper_R",
+   "color": "#FFFFFF",
+   "roughness": 0.4,
+   "explode": [
+    120,
+    60,
+    0
+   ]
+  },
+  {
+   "name": "side_upper_L",
+   "color": "#FFFFFF",
+   "roughness": 0.4,
+   "explode": [
+    -120,
+    60,
+    0
+   ]
+  },
+  {
+   "name": "side_lower_R",
+   "color": "#FFFFFF",
+   "roughness": 0.4,
+   "explode": [
+    120,
+    -40,
+    0
+   ]
+  },
+  {
+   "name": "side_lower_L",
+   "color": "#FFFFFF",
+   "roughness": 0.4,
+   "explode": [
+    -120,
+    -40,
+    0
+   ]
+  },
+  {
+   "name": "head_1",
+   "color": "#F4F6F7",
+   "roughness": 0.4,
+   "explode": [
+    -40,
+    160,
+    60
+   ]
+  },
+  {
+   "name": "head_2",
+   "color": "#F4F6F7",
+   "roughness": 0.4,
+   "explode": [
+    0,
+    160,
+    60
+   ]
+  },
+  {
+   "name": "head_3",
+   "color": "#F4F6F7",
+   "roughness": 0.4,
+   "explode": [
+    40,
+    160,
+    60
+   ]
+  },
+  {
+   "name": "slats_L",
+   "color": "#E9EEF0",
+   "roughness": 0.4,
+   "explode": [
+    -30,
+    0,
+    160
+   ]
+  },
+  {
+   "name": "slats_R",
+   "color": "#E9EEF0",
+   "roughness": 0.4,
+   "explode": [
+    30,
+    0,
+    160
+   ]
+  },
+  {
+   "name": "cassette_L",
+   "color": "#FFFFFF",
+   "roughness": 0.4,
+   "explode": [
+    -30,
+    -170,
+    60
+   ]
+  },
+  {
+   "name": "cassette_R",
+   "color": "#FFFFFF",
+   "roughness": 0.4,
+   "explode": [
+    30,
+    -170,
+    60
+   ]
+  },
+  {
+   "name": "knob",
+   "color": "#0F6E56",
+   "roughness": 0.4,
+   "explode": [
+    160,
+    -60,
+    0
+   ]
+  },
+  {
+   "name": "cap_supply_L",
+   "color": "#0F6E56",
+   "roughness": 0.4,
+   "explode": [
+    -60,
+    60,
+    0
+   ]
+  },
+  {
+   "name": "cap_supply_R",
+   "color": "#0F6E56",
+   "roughness": 0.4,
+   "explode": [
+    60,
+    60,
+    0
+   ]
+  },
+  {
+   "name": "cap_takeup_L",
+   "color": "#0F6E56",
+   "roughness": 0.4,
+   "explode": [
+    -60,
+    -170,
+    60
+   ]
+  },
+  {
+   "name": "cap_takeup_R",
+   "color": "#0F6E56",
+   "roughness": 0.4,
+   "explode": [
+    60,
+    -170,
+    60
+   ]
+  },
+  {
+   "name": "back_plate",
+   "color": "#DCE3E7",
+   "roughness": 0.4,
+   "explode": [
+    0,
+    0,
+    -80
+   ]
+  },
+  {
+   "name": "lamp",
+   "color": "#C9C3F2",
+   "roughness": 0.4,
+   "explode": [
+    0,
+    220,
+    120
+   ],
+   "emissive": "#7F77DD",
+   "emissiveIntensity": 1.2
+  },
+  {
+   "name": "sockets",
+   "color": "#3E3D3A",
+   "roughness": 0.4,
+   "explode": [
+    0,
+    200,
+    80
+   ]
+  },
+  {
+   "name": "rolls",
+   "color": "#F2D79E",
+   "roughness": 0.4,
+   "explode": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "cores",
+   "color": "#BA7517",
+   "roughness": 0.4,
+   "explode": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "film",
+   "color": "#FAEEDA",
+   "roughness": 0.4,
+   "explode": [
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "ballast",
+   "color": "#8C9196",
+   "roughness": 0.4,
+   "explode": [
+    0,
+    0,
+    0
+   ]
+  }
+ ]
+}

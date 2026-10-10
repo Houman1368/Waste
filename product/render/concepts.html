@@ -11,7 +11,8 @@ const q = new URLSearchParams(location.search);
 const key = q.get('c') || 'a';
 const view = q.get('view') || 'hero';
 const W = +(q.get('w') || 1200), H = +(q.get('h') || 1500);
-const dir = `../cad/out/concepts/${key}/`;
+const wall0 = q.get('nowall') === '1';
+const dir = q.get('dir') || `../cad/out/concepts/${key}/`;
 const M = await (await fetch(dir + 'manifest.json')).json();
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -45,8 +46,8 @@ for (const L of M.lights || []) {
 const [sw, sh, sd] = M.size;
 const target = new THREE.Vector3(0, sh / 2, sd / 2);
 const fov = 28;
-const dist = Math.max(sh * 1.15, sw * 1.15 * H / W) / (2 * Math.tan(fov * Math.PI / 360)) * 1.12;
-const dirs = { dial: [1, 0, 0], hero: [0.5, 0.18, 1], front: [0, 0, 1], inside: [0.5, 0.18, 1], side: [1, 0.1, 0.35] };
+const dist = Math.max(sh * 1.15, sw * 1.15 * H / W) / (2 * Math.tan(fov * Math.PI / 360)) * (view === 'exploded' ? 1.95 : 1.12);
+const dirs = { exploded: [0.75, 0.35, 1], dial: [1, 0, 0], hero: [0.5, 0.18, 1], front: [0, 0, 1], inside: [0.5, 0.18, 1], side: [1, 0.1, 0.35] };
 const d = new THREE.Vector3(...dirs[view]).normalize();
 const cam = new THREE.PerspectiveCamera(fov, W / H, 1, 20000);
 cam.position.copy(target).addScaledVector(d, dist);
@@ -58,8 +59,29 @@ if (view === 'dial' && M.focus) {
 }
 
 const loader = new STLLoader();
+const only = q.get('only');
+if (only) {
+  // تصویر تک‌قطعه برای جدول قطعات
+  wall.visible = false;
+  scene.background = new THREE.Color(0xFFFFFF);
+  const geo = await new Promise(r => loader.load(dir + only + '.stl', r));
+  geo.computeVertexNormals(); geo.computeBoundingBox();
+  const bb = geo.boundingBox, c = new THREE.Vector3(), sz = new THREE.Vector3();
+  bb.getCenter(c); bb.getSize(sz);
+  const pm = M.parts.find(p => p.name === only) || {};
+  const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: pm.color === '#FFFFFF' ? '#F1F4F5' : (pm.color || '#eee'), roughness: 0.45 }));
+  mesh.castShadow = true; scene.add(mesh);
+  scene.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), new THREE.LineBasicMaterial({ color: 0x55656D, transparent: true, opacity: 0.6 })));
+  const r = sz.length() / 2;
+  cam.position.copy(c).add(new THREE.Vector3(0.7, 0.5, 1).normalize().multiplyScalar(r / Math.tan(fov * Math.PI / 360) * 1.05));
+  cam.lookAt(c);
+  renderer.render(scene, cam);
+  window.__done = true;
+  throw new Error('done');
+}
 const tex = new THREE.TextureLoader();
 const inside = view === 'inside';
+const exploded = view === 'exploded';
 const jobs = M.parts.filter(p => inside || !(M.hideNormally || []).includes(p.name)).map(p => new Promise(res => {
   loader.load(dir + p.name + '.stl', geo => {
     geo.computeVertexNormals();
@@ -71,8 +93,9 @@ const jobs = M.parts.filter(p => inside || !(M.hideNormally || []).includes(p.na
     });
     const m = new THREE.Mesh(geo, mat);
     m.castShadow = !ghost && !p.emissive; m.receiveShadow = true;
+    if (exploded && p.explode) m.position.set(...p.explode);
     scene.add(m);
-    if (ghost) scene.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), new THREE.LineBasicMaterial({ color: 0x8FA3AA, transparent: true, opacity: 0.5 })));
+    if (ghost) scene.add(Object.assign(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 30), new THREE.LineBasicMaterial({ color: 0x8FA3AA, transparent: true, opacity: 0.5 })), {}));
     res();
   });
 }));
