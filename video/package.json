@@ -1,0 +1,32 @@
+{
+  "name": "hospital-insect-trap-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Animated product video for a hospital UV-A roll-film insect trap (Remotion)",
+  "scripts": {
+    "dev": "remotion studio",
+    "render:wide": "remotion render Video16x9 out/video-16x9.mp4",
+    "render:vertical": "remotion render Video9x16 out/video-9x16.mp4",
+    "render:all": "npm run render:wide && npm run render:vertical",
+    "stills": "node scripts/stills.mjs",
+    "lint": "tsc --noEmit",
+    "fonts:download": "node scripts/download-fonts.mjs",
+    "render:wide:local-fonts": "REMOTION_LOCAL_FONTS=1 remotion render Video16x9 out/video-16x9.mp4",
+    "render:vertical:local-fonts": "REMOTION_LOCAL_FONTS=1 remotion render Video9x16 out/video-9x16.mp4"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.534",
+    "@remotion/cli": "^4.0.534",
+    "@remotion/google-fonts": "^4.0.534",
+    "@remotion/media-utils": "^4.0.534",
+    "@remotion/renderer": "^4.0.534",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.534"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}
