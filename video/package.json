@@ -12,7 +12,11 @@
     "lint": "tsc --noEmit",
     "fonts:download": "node scripts/download-fonts.mjs",
     "render:wide:local-fonts": "REMOTION_LOCAL_FONTS=1 remotion render Video16x9 out/video-16x9.mp4",
-    "render:vertical:local-fonts": "REMOTION_LOCAL_FONTS=1 remotion render Video9x16 out/video-9x16.mp4"
+    "render:vertical:local-fonts": "REMOTION_LOCAL_FONTS=1 remotion render Video9x16 out/video-9x16.mp4",
+    "render:rth-a": "remotion render RTH-A out/RTH-A.mp4",
+    "render:rth-b": "remotion render RTH-B out/RTH-B.mp4",
+    "render:rth-c": "remotion render RTH-C out/RTH-C.mp4",
+    "render:rth": "npm run render:rth-a && npm run render:rth-b && npm run render:rth-c"
   },
   "dependencies": {
     "@remotion/bundler": "^4.0.534",

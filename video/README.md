@@ -12,6 +12,18 @@ npm run render:vertical  # out/video-9x16.mp4  (1080×1920)
 npm run stills           # اسکرین‌شات فریم‌های 150، 600، 1200، 1600، 2100 در out/stills
 ```
 
+## ویدیوهای معرفی مدل‌ها (RTH-A، RTH-B، RTH-C)
+
+```bash
+npm run render:rth-a     # out/RTH-A.mp4
+npm run render:rth-b     # out/RTH-B.mp4
+npm run render:rth-c     # out/RTH-C.mp4
+npm run render:rth       # هر سه
+```
+
+هر ویدیو ۹۳ ثانیه (1920×1080): بسم الله ← معرفی با لوگو و نام شرکت ← اجزا ← جذب ← گیر افتادن ← پیچیدن فیلم (دستی/برقی) ← تعویض کارتریج ← مشخصات ← پایان.
+متن‌ها و ابعاد هر مدل در `src/models/specs.ts`؛ تصاویر سه‌بعدی در `public/renders/`.
+
 ## جای‌خالی‌ها
 
 نام محصول، نام شرکت و شمارهٔ تماس/وب‌سایت فقط در `src/config.ts` هستند.
